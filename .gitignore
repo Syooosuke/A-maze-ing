@@ -1,0 +1,41 @@
+# Byte-compiled / cached files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Tooling caches
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Packaging leftovers. Only the built wheel is committed, at the root.
+build/
+dist/
+*.egg-info/
+mazegen-*.tar.gz
+
+# MiniLibX extraction directory
+.mlx/
+
+# Not part of the submission (see the subject):
+#  - the test programs are "not submitted or graded"
+#  - these two files are provided with the subject, not by us
+tests/
+maze_analyzer.py
+mlx-2.2.tgz
+
+# Generated mazes
+maze.txt
+*.maze.txt
+
+# Editors and OS
+.DS_Store
+.idea/
+.vscode/

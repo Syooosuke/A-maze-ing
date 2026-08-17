@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mazegen"
+version = "1.0.0"
+description = "A small, dependency-free maze generator and solver."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE.md" }
+authors = [{ name = "A-Maze-ing team" }]
+keywords = ["maze", "generator", "labyrinth", "42", "pacman"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Topic :: Games/Entertainment :: Puzzle Games",
+    "Typing :: Typed",
+]
+
+[project.urls]
+Homepage = "https://github.com/42/a-maze-ing"
+
+[tool.setuptools]
+py-modules = ["mazegen"]
+
+[tool.mypy]
+python_version = "3.10"
+exclude = ["build/", "\\.venv/"]
+
+# The MiniLibX wrapper is an optional, untyped, Linux-only dependency.
+[[tool.mypy.overrides]]
+module = ["mlx", "mlx.*"]
+ignore_missing_imports = true
