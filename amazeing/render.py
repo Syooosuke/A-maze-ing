@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
+from itertools import groupby
 from typing import Dict, List, Optional, Set, Tuple
 
 from mazegen import EAST, NORTH, SOUTH, WEST, Coord, MazeGenerator
@@ -62,6 +63,15 @@ _ASCII: Dict[Token, str] = {
 
 _BLOCK = "██"
 
+# Where the wall of a cell lands on the canvas, relative to its top-left
+# corner ``(2 * y, 2 * x)``.
+_WALL_SPOTS: Dict[int, Tuple[int, int]] = {
+    NORTH: (0, 1),
+    SOUTH: (2, 1),
+    WEST: (1, 0),
+    EAST: (1, 2),
+}
+
 
 def theme_by_name(name: str) -> Optional[Theme]:
     """Return the theme called ``name``, or ``None`` when unknown."""
@@ -94,19 +104,17 @@ class Canvas:
         generator = self.generator
         for y in range(generator.height):
             for x in range(generator.width):
-                walls = generator.walls_at(x, y)
-                if walls & NORTH:
-                    self.cells[2 * y][2 * x + 1] = Token.WALL
-                if walls & SOUTH:
-                    self.cells[2 * y + 2][2 * x + 1] = Token.WALL
-                if walls & WEST:
-                    self.cells[2 * y + 1][2 * x] = Token.WALL
-                if walls & EAST:
-                    self.cells[2 * y + 1][2 * x + 2] = Token.WALL
+                self._draw_cell_walls(x, y, generator.walls_at(x, y))
         for row in range(0, self.rows, 2):
             for col in range(0, self.cols, 2):
                 if self._post_is_wall(row, col):
                     self.cells[row][col] = Token.WALL
+
+    def _draw_cell_walls(self, x: int, y: int, walls: int) -> None:
+        """Draw the closed walls of the cell ``(x, y)``."""
+        for direction, (row, col) in _WALL_SPOTS.items():
+            if walls & direction:
+                self.cells[2 * y + row][2 * x + col] = Token.WALL
 
     def _post_is_wall(self, row: int, col: int) -> bool:
         """Tell whether the corner at ``(row, col)`` touches a wall."""
@@ -171,26 +179,39 @@ def _colour_of(token: Token, theme: Theme, pattern_colour: bool) -> int:
     return theme.wall
 
 
+def _swatch(
+    token: Token,
+    theme: Theme,
+    colour: bool,
+    pattern_colour: bool,
+    count: int = 1,
+) -> str:
+    """Return ``count`` consecutive spots standing for ``token``.
+
+    Args:
+        token: What the spots stand for.
+        theme: Colours used for the walls, the path and the pattern.
+        colour: Use ANSI colours; ASCII characters are used otherwise.
+        pattern_colour: Give the "42" pattern its own colour.
+        count: How many spots to draw in a row.
+
+    Returns:
+        The drawn spots, colour escape sequences included.
+    """
+    if not colour or token is Token.VOID:
+        return _ASCII[token] * count
+    code = _colour_of(token, theme, pattern_colour)
+    return f"\x1b[38;5;{code}m{_BLOCK * count}{_RESET}"
+
+
 def _render_row(
     row: List[Token], theme: Theme, colour: bool, pattern_colour: bool
 ) -> str:
     """Render a single canvas row, grouping identical tokens together."""
-    if not colour:
-        return "".join(_ASCII[token] for token in row)
-    chunks: List[str] = []
-    index = 0
-    while index < len(row):
-        token = row[index]
-        run = 1
-        while index + run < len(row) and row[index + run] is token:
-            run += 1
-        if token is Token.VOID:
-            chunks.append("  " * run)
-        else:
-            code = _colour_of(token, theme, pattern_colour)
-            chunks.append(f"\x1b[38;5;{code}m{_BLOCK * run}{_RESET}")
-        index += run
-    return "".join(chunks)
+    return "".join(
+        _swatch(token, theme, colour, pattern_colour, len(list(group)))
+        for token, group in groupby(row)
+    )
 
 
 def render(
@@ -232,11 +253,7 @@ def legend(theme: Theme, colour: bool, pattern_colour: bool) -> str:
         (Token.PATH, "path"),
         (Token.WALL, "wall"),
     )
-    parts: List[str] = []
-    for token, label in items:
-        if colour:
-            code = _colour_of(token, theme, pattern_colour)
-            parts.append(f"\x1b[38;5;{code}m{_BLOCK}{_RESET} {label}")
-        else:
-            parts.append(f"{_ASCII[token]} {label}")
-    return "  ".join(parts)
+    return "  ".join(
+        f"{_swatch(token, theme, colour, pattern_colour)} {label}"
+        for token, label in items
+    )

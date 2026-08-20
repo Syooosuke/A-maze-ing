@@ -76,25 +76,20 @@ class MazeConfig:
     display: str = "terminal"
 
 
-def _parse_int(key: str, raw: str) -> int:
-    """Convert ``raw`` into a strictly positive integer."""
-    try:
-        value = int(raw)
-    except ValueError:
-        raise ConfigError(
-            f"{key}: {raw!r} is not an integer"
-        ) from None
-    if value <= 0:
-        raise ConfigError(f"{key}: {value} must be strictly positive")
-    return value
-
-
-def _parse_seed(key: str, raw: str) -> int:
+def _parse_integer(key: str, raw: str) -> int:
     """Convert ``raw`` into any integer, negative values included."""
     try:
         return int(raw)
     except ValueError:
         raise ConfigError(f"{key}: {raw!r} is not an integer") from None
+
+
+def _parse_positive_int(key: str, raw: str) -> int:
+    """Convert ``raw`` into a strictly positive integer."""
+    value = _parse_integer(key, raw)
+    if value <= 0:
+        raise ConfigError(f"{key}: {value} must be strictly positive")
+    return value
 
 
 def _parse_bool(key: str, raw: str) -> bool:
@@ -223,13 +218,15 @@ def load_config(path: str) -> MazeConfig:
 
     raw_seed = pairs.get("SEED")
     config = MazeConfig(
-        width=_parse_int("WIDTH", pairs["WIDTH"]),
-        height=_parse_int("HEIGHT", pairs["HEIGHT"]),
+        width=_parse_positive_int("WIDTH", pairs["WIDTH"]),
+        height=_parse_positive_int("HEIGHT", pairs["HEIGHT"]),
         entry=_parse_coord("ENTRY", pairs["ENTRY"]),
         exit=_parse_coord("EXIT", pairs["EXIT"]),
         output_file=_parse_path("OUTPUT_FILE", pairs["OUTPUT_FILE"]),
         perfect=_parse_bool("PERFECT", pairs["PERFECT"]),
-        seed=None if raw_seed is None else _parse_seed("SEED", raw_seed),
+        seed=(
+            None if raw_seed is None else _parse_integer("SEED", raw_seed)
+        ),
         algorithm=_parse_algorithm(
             "ALGORITHM", pairs.get("ALGORITHM", "backtracker")
         ),

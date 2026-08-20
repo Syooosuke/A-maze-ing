@@ -52,11 +52,11 @@ def build_generator(config: MazeConfig) -> MazeGenerator:
 
 def use_colour(config: MazeConfig) -> bool:
     """Tell whether the terminal output may use ANSI colours."""
-    if not config.color:
-        return False
-    if os.environ.get("NO_COLOR") is not None:
-        return False
-    return sys.stdout.isatty()
+    return (
+        config.color
+        and os.environ.get("NO_COLOR") is None
+        and sys.stdout.isatty()
+    )
 
 
 def run_program(config_path: str) -> int:
@@ -130,14 +130,11 @@ def main(argv: Optional[List[str]] = None) -> int:
         return 0
     try:
         return run_program(args[1])
-    except (ConfigError, MazeError, OutputError) as error:
+    except (ConfigError, MazeError, OutputError, OSError) as error:
         print(f"Error: {error}", file=sys.stderr)
         return 1
     except KeyboardInterrupt:
         print("\nInterrupted.", file=sys.stderr)
-        return 1
-    except OSError as error:
-        print(f"Error: {error}", file=sys.stderr)
         return 1
 
 

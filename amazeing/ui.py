@@ -54,6 +54,28 @@ class Session:
         """
         self.generator.generate(seed=random.randrange(2 ** 32))
 
+    def toggle_path(self) -> None:
+        """Show or hide the shortest path."""
+        self.show_path = not self.show_path
+
+    def next_theme(self) -> None:
+        """Switch to the next set of colours."""
+        self.theme_index = (self.theme_index + 1) % len(THEMES)
+
+    def toggle_pattern_colour(self) -> None:
+        """Give the "42" pattern its own colour, or the wall one."""
+        self.pattern_colour = not self.pattern_colour
+
+    def save(self) -> None:
+        """Write the current maze to the configured output file."""
+        path = self.config.output_file
+        try:
+            write_maze(path, self.generator)
+        except OutputError as error:
+            print(f"Error: {error}", file=sys.stderr)
+            return
+        print(f"Maze written to {path}")
+
     def status(self) -> str:
         """Return a one line summary of the current maze."""
         generator = self.generator
@@ -110,6 +132,38 @@ def _prompt() -> Optional[str]:
         return None
 
 
+def _apply(session: Session, choice: str) -> bool:
+    """Apply one menu choice.
+
+    Args:
+        session: The session holding the maze and the display options.
+        choice: The entry typed by the user.
+
+    Returns:
+        ``True`` when the maze has to be drawn again.
+    """
+    if choice == "1":
+        try:
+            session.regenerate()
+        except MazeError as error:
+            print(f"Error: {error}", file=sys.stderr)
+            return False
+        report_problems(session.generator)
+    elif choice == "2":
+        session.toggle_path()
+    elif choice == "3":
+        session.next_theme()
+    elif choice == "4":
+        session.toggle_pattern_colour()
+    elif choice == "5":
+        session.save()
+        return False
+    else:
+        print(f"Unknown choice {choice!r}, please pick 1 to {len(_MENU)}.")
+        return False
+    return True
+
+
 def run(session: Session) -> None:
     """Run the interactive menu until the user quits.
 
@@ -122,34 +176,5 @@ def run(session: Session) -> None:
         if choice is None or choice in ("6", "q", "quit"):
             print("Bye!")
             return
-        if choice == "1":
-            try:
-                session.regenerate()
-            except MazeError as error:
-                print(f"Error: {error}", file=sys.stderr)
-                continue
-            report_problems(session.generator)
-        elif choice == "2":
-            session.show_path = not session.show_path
-        elif choice == "3":
-            session.theme_index = (session.theme_index + 1) % len(THEMES)
-        elif choice == "4":
-            session.pattern_colour = not session.pattern_colour
-        elif choice == "5":
-            _save(session)
-            continue
-        else:
-            print(f"Unknown choice {choice!r}, please pick 1 to 6.")
-            continue
-        show(session)
-
-
-def _save(session: Session) -> None:
-    """Write the current maze to the configured output file."""
-    path = session.config.output_file
-    try:
-        write_maze(path, session.generator)
-    except OutputError as error:
-        print(f"Error: {error}", file=sys.stderr)
-        return
-    print(f"Maze written to {path}")
+        if _apply(session, choice):
+            show(session)
