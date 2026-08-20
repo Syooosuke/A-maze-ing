@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 from itertools import groupby
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Set, Tuple
 
 from mazegen import EAST, NORTH, SOUTH, WEST, Coord, MazeGenerator
 
@@ -71,14 +71,6 @@ _WALL_SPOTS: Dict[int, Tuple[int, int]] = {
     WEST: (1, 0),
     EAST: (1, 2),
 }
-
-
-def theme_by_name(name: str) -> Optional[Theme]:
-    """Return the theme called ``name``, or ``None`` when unknown."""
-    for theme in THEMES:
-        if theme.name == name:
-            return theme
-    return None
 
 
 class Canvas:

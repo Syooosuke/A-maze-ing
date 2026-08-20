@@ -454,21 +454,16 @@ class MazeGenerator:
         stack: List[Coord] = [start]
         while stack:
             x, y = stack[-1]
-            neighbours = {
-                direction: self._step(x, y, direction)
-                for direction in _DIRECTIONS
-            }
-            options = [
-                direction
-                for direction, cell in neighbours.items()
-                if cell not in visited and self._is_corridor(*cell)
-            ]
+            options: List[Tuple[int, Coord]] = []
+            for direction in _DIRECTIONS:
+                cell = self._step(x, y, direction)
+                if cell not in visited and self._is_corridor(*cell):
+                    options.append((direction, cell))
             if not options:
                 stack.pop()
                 continue
-            direction = self._rng.choice(options)
+            direction, cell = self._rng.choice(options)
             self._carve(x, y, direction)
-            cell = neighbours[direction]
             visited.add(cell)
             stack.append(cell)
 
