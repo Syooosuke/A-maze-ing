@@ -1,9 +1,9 @@
-"""Application layer of the A-Maze-ing project.
+"""A-Maze-ing プロジェクトのアプリケーション層。
 
-The reusable maze generation logic lives in the standalone :mod:`mazegen`
-module.  This package only holds what is specific to the command line
-program: configuration parsing, output file writing, terminal rendering,
-the interactive menu and the optional MiniLibX window.
+再利用可能な迷路生成ロジックは独立した :mod:`mazegen` モジュールにある。
+このパッケージが持つのはコマンドラインプログラム固有の部分だけで、設定の
+解析、出力ファイルの書き出し、端末描画、対話メニュー、そして任意機能の
+MiniLibX ウィンドウが含まれる。
 """
 
 from __future__ import annotations

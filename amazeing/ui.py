@@ -1,4 +1,4 @@
-"""Interactive terminal front-end of the maze generator."""
+"""迷路生成器の対話的な端末フロントエンド。"""
 
 from __future__ import annotations
 
@@ -22,17 +22,16 @@ _MENU = (
 
 
 class Session:
-    """Hold the maze and the display options of an interactive run."""
+    """対話実行中の迷路と表示オプションを保持する。"""
 
     def __init__(
         self, generator: MazeGenerator, config: MazeConfig
     ) -> None:
-        """Prepare a session around an already generated maze.
+        """生成済みの迷路を包むセッションを用意する。
 
         Args:
-            generator: A generator on which ``generate()`` has been
-                called.
-            config: The configuration the maze was built from.
+            generator: ``generate()`` を呼び終えた生成器。
+            config: その迷路を作るのに使った設定。
         """
         self.generator = generator
         self.config = config
@@ -43,31 +42,31 @@ class Session:
 
     @property
     def theme(self) -> Theme:
-        """Return the theme currently used to draw the maze."""
+        """いま迷路の描画に使っているテーマを返す。"""
         return THEMES[self.theme_index]
 
     def regenerate(self) -> None:
-        """Build a new maze with a fresh random seed.
+        """新しい乱数シードで迷路を作り直す。
 
         Raises:
-            MazeError: If the new maze cannot be built.
+            MazeError: 新しい迷路を作れない場合。
         """
         self.generator.generate(seed=random.randrange(2 ** 32))
 
     def toggle_path(self) -> None:
-        """Show or hide the shortest path."""
+        """最短経路の表示と非表示を切り替える。"""
         self.show_path = not self.show_path
 
     def next_theme(self) -> None:
-        """Switch to the next set of colours."""
+        """次の配色に切り替える。"""
         self.theme_index = (self.theme_index + 1) % len(THEMES)
 
     def toggle_pattern_colour(self) -> None:
-        """Give the "42" pattern its own colour, or the wall one."""
+        """パターン "42" に専用色を与えるか、壁と同じ色にするか。"""
         self.pattern_colour = not self.pattern_colour
 
     def save(self) -> None:
-        """Write the current maze to the configured output file."""
+        """いまの迷路を設定された出力ファイルに書き出す。"""
         path = self.config.output_file
         try:
             write_maze(path, self.generator)
@@ -77,7 +76,7 @@ class Session:
         print(f"Maze written to {path}")
 
     def status(self) -> str:
-        """Return a one line summary of the current maze."""
+        """いまの迷路の要約を 1 行で返す。"""
         generator = self.generator
         mode = "perfect" if generator.perfect else "playable board"
         return (
@@ -89,7 +88,7 @@ class Session:
         )
 
     def screen(self) -> str:
-        """Return the whole screen: maze, legend and status line."""
+        """画面全体、つまり迷路と凡例と状態行をまとめて返す。"""
         picture = render(
             self.generator,
             theme=self.theme,
@@ -108,19 +107,19 @@ class Session:
 
 
 def report_problems(generator: MazeGenerator) -> None:
-    """Print on stderr the requirements the maze does not meet."""
+    """迷路が満たしていない要件を標準エラー出力に表示する。"""
     problems: List[str] = generator.check()
     for problem in problems:
         print(f"Warning: {problem}", file=sys.stderr)
 
 
 def show(session: Session) -> None:
-    """Print the maze and the informations around it."""
+    """迷路と、その周りの情報を表示する。"""
     print(session.screen())
 
 
 def _prompt() -> Optional[str]:
-    """Print the menu and read one choice, or ``None`` on end of input."""
+    """メニューを表示して選択を 1 つ読む。入力終了なら ``None``。"""
     print()
     print("=== A-Maze-ing ===")
     for entry in _MENU:
@@ -133,14 +132,14 @@ def _prompt() -> Optional[str]:
 
 
 def _apply(session: Session, choice: str) -> bool:
-    """Apply one menu choice.
+    """メニューの選択を 1 つ実行する。
 
     Args:
-        session: The session holding the maze and the display options.
-        choice: The entry typed by the user.
+        session: 迷路と表示オプションを保持するセッション。
+        choice: 利用者が入力した項目。
 
     Returns:
-        ``True`` when the maze has to be drawn again.
+        迷路を描き直す必要があるなら ``True``。
     """
     if choice == "1":
         try:
@@ -165,10 +164,10 @@ def _apply(session: Session, choice: str) -> bool:
 
 
 def run(session: Session) -> None:
-    """Run the interactive menu until the user quits.
+    """利用者が終了を選ぶまで対話メニューを回す。
 
     Args:
-        session: The session holding the maze and the display options.
+        session: 迷路と表示オプションを保持するセッション。
     """
     show(session)
     while True:

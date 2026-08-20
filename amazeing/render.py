@@ -1,4 +1,4 @@
-"""Terminal rendering of a maze, with ANSI colours."""
+"""ANSI カラーを使った迷路の端末描画。"""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ _RESET = "\x1b[0m"
 
 
 class Token(Enum):
-    """What a half-cell of the rendered canvas stands for."""
+    """描画キャンバスの半セルが何を表すか。"""
 
     VOID = "void"
     WALL = "wall"
@@ -25,15 +25,15 @@ class Token(Enum):
 
 @dataclass(frozen=True)
 class Theme:
-    """A named set of 256-colour ANSI codes.
+    """名前を付けた 256 色 ANSI コードの組。
 
     Attributes:
-        name: Human readable name, shown in the interactive menu.
-        wall: Colour of the maze walls.
-        pattern: Colour of the "42" pattern.
-        path: Colour of the shortest path.
-        entry: Colour of the entry cell.
-        exit: Colour of the exit cell.
+        name: 対話メニューに表示する、人が読める名前。
+        wall: 迷路の壁の色。
+        pattern: "42" のパターンの色。
+        path: 最短経路の色。
+        entry: 入口セルの色。
+        exit: 出口セルの色。
     """
 
     name: str
@@ -74,14 +74,13 @@ _WALL_SPOTS: Dict[int, Tuple[int, int]] = {
 
 
 class Canvas:
-    """A ``(2h+1)`` by ``(2w+1)`` grid of :class:`Token` values."""
+    """:class:`Token` を並べた ``(2h+1)`` × ``(2w+1)`` の格子。"""
 
     def __init__(self, generator: MazeGenerator) -> None:
-        """Build the canvas of walls and corridors of ``generator``.
+        """``generator`` の壁と通路からキャンバスを組み立てる。
 
         Args:
-            generator: A generator on which ``generate()`` has been
-                called.
+            generator: ``generate()`` を呼び終えた生成器。
         """
         self.generator = generator
         self.rows = 2 * generator.height + 1
@@ -92,7 +91,7 @@ class Canvas:
         self._draw_walls()
 
     def _draw_walls(self) -> None:
-        """Fill the canvas with the walls of every cell."""
+        """すべてのセルの壁でキャンバスを埋める。"""
         generator = self.generator
         for y in range(generator.height):
             for x in range(generator.width):
@@ -103,13 +102,13 @@ class Canvas:
                     self.cells[row][col] = Token.WALL
 
     def _draw_cell_walls(self, x: int, y: int, walls: int) -> None:
-        """Draw the closed walls of the cell ``(x, y)``."""
+        """セル ``(x, y)`` の閉じた壁を描く。"""
         for direction, (row, col) in _WALL_SPOTS.items():
             if walls & direction:
                 self.cells[2 * y + row][2 * x + col] = Token.WALL
 
     def _post_is_wall(self, row: int, col: int) -> bool:
-        """Tell whether the corner at ``(row, col)`` touches a wall."""
+        """``(row, col)`` の角が壁に接しているかどうかを返す。"""
         for delta_row, delta_col in ((-1, 0), (1, 0), (0, -1), (0, 1)):
             near_row, near_col = row + delta_row, col + delta_col
             if not (0 <= near_row < self.rows and 0 <= near_col < self.cols):
@@ -119,7 +118,7 @@ class Canvas:
         return False
 
     def paint_pattern(self) -> None:
-        """Give the "42" cells and their walls their own token."""
+        """パターン "42" のセルとその壁に専用トークンを与える。"""
         pattern = self.generator.pattern_cells
         if not pattern:
             return
@@ -130,7 +129,7 @@ class Canvas:
                     self.cells[row][col] = Token.PATTERN
 
     def _cells_touching(self, row: int, col: int) -> Set[Coord]:
-        """Return the maze cells sharing the canvas spot ``(row, col)``."""
+        """キャンバス上の ``(row, col)`` を共有する迷路セルを返す。"""
         xs = [(col - 1) // 2] if col % 2 else [col // 2 - 1, col // 2]
         ys = [(row - 1) // 2] if row % 2 else [row // 2 - 1, row // 2]
         return {
@@ -142,7 +141,7 @@ class Canvas:
         }
 
     def paint_path(self, path: List[Coord]) -> None:
-        """Draw ``path`` as a continuous line of corridors."""
+        """``path`` を途切れない通路の線として描く。"""
         for x, y in path:
             self.cells[2 * y + 1][2 * x + 1] = Token.PATH
         for (from_x, from_y), (to_x, to_y) in zip(path, path[1:]):
@@ -151,7 +150,7 @@ class Canvas:
             self.cells[row][col] = Token.PATH
 
     def paint_endpoints(self) -> None:
-        """Mark the entry and the exit cells."""
+        """入口と出口のセルに印を付ける。"""
         entry_x, entry_y = self.generator.entry
         exit_x, exit_y = self.generator.exit
         self.cells[2 * entry_y + 1][2 * entry_x + 1] = Token.ENTRY
@@ -159,7 +158,7 @@ class Canvas:
 
 
 def _colour_of(token: Token, theme: Theme, pattern_colour: bool) -> int:
-    """Return the ANSI colour index used to draw ``token``."""
+    """``token`` を描くのに使う ANSI 色番号を返す。"""
     if token is Token.PATTERN:
         return theme.pattern if pattern_colour else theme.wall
     if token is Token.PATH:
@@ -178,17 +177,17 @@ def _swatch(
     pattern_colour: bool,
     count: int = 1,
 ) -> str:
-    """Return ``count`` consecutive spots standing for ``token``.
+    """``token`` を表すマスを ``count`` 個ぶん連ねて返す。
 
     Args:
-        token: What the spots stand for.
-        theme: Colours used for the walls, the path and the pattern.
-        colour: Use ANSI colours; ASCII characters are used otherwise.
-        pattern_colour: Give the "42" pattern its own colour.
-        count: How many spots to draw in a row.
+        token: マスが表すもの。
+        theme: 壁、経路、パターンに使う配色。
+        colour: ANSI カラーを使う。偽なら ASCII 文字で描く。
+        pattern_colour: "42" のパターンに専用色を与える。
+        count: 横に並べて描くマスの個数。
 
     Returns:
-        The drawn spots, colour escape sequences included.
+        描いたマス。色のエスケープシーケンスを含む。
     """
     if not colour or token is Token.VOID:
         return _ASCII[token] * count
@@ -199,7 +198,7 @@ def _swatch(
 def _render_row(
     row: List[Token], theme: Theme, colour: bool, pattern_colour: bool
 ) -> str:
-    """Render a single canvas row, grouping identical tokens together."""
+    """キャンバスの 1 行を、同じトークンをまとめながら描画する。"""
     return "".join(
         _swatch(token, theme, colour, pattern_colour, len(list(group)))
         for token, group in groupby(row)
@@ -213,17 +212,17 @@ def render(
     colour: bool = True,
     pattern_colour: bool = True,
 ) -> str:
-    """Render a maze as a block of text.
+    """迷路をひとかたまりのテキストとして描画する。
 
     Args:
-        generator: A generator on which ``generate()`` has been called.
-        theme: Colours used for the walls, the path and the pattern.
-        show_path: Draw the shortest path from the entry to the exit.
-        colour: Use ANSI colours; ASCII characters are used otherwise.
-        pattern_colour: Give the "42" pattern its own colour.
+        generator: ``generate()`` を呼び終えた生成器。
+        theme: 壁、経路、パターンに使う配色。
+        show_path: 入口から出口への最短経路を描く。
+        colour: ANSI カラーを使う。偽なら ASCII 文字で描く。
+        pattern_colour: "42" のパターンに専用色を与える。
 
     Returns:
-        The rendered maze, without a trailing newline.
+        描画した迷路。末尾の改行は含まない。
     """
     canvas = Canvas(generator)
     canvas.paint_pattern()
@@ -237,7 +236,7 @@ def render(
 
 
 def legend(theme: Theme, colour: bool, pattern_colour: bool) -> str:
-    """Return a one line legend matching the current colours."""
+    """いまの配色に対応する凡例を 1 行で返す。"""
     items = (
         (Token.ENTRY, "entry"),
         (Token.EXIT, "exit"),
