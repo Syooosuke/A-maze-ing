@@ -1,13 +1,13 @@
-"""Optional graphical rendering of the maze with the MiniLibX library.
+"""MiniLibX ライブラリによる、任意機能のグラフィカルな迷路描画。
 
-The ``mlx`` package (shipped with the subject as ``mlx-2.2.tgz``) is a thin
-ctypes wrapper around the C MiniLibX.  It is **not** a dependency of this
-project: when it is missing, or when no display is available, the program
-falls back to the terminal renderer with a clear message.
+``mlx`` パッケージ（subject に ``mlx-2.2.tgz`` として同梱）は、C 版の
+MiniLibX を ctypes で薄く包んだものである。これは本プロジェクトの依存
+関係では **ない**。見つからないときや利用できるディスプレイがないとき
+は、はっきりしたメッセージを出したうえで端末描画へ切り替える。
 
-The whole maze is drawn into a single MiniLibX image, which is then blitted
-in one call -- drawing pixel per pixel through ``mlx_pixel_put`` would be
-far too slow for a maze of a few hundred cells.
+迷路全体は 1 枚の MiniLibX 画像に描き、それを 1 回の呼び出しで転送する。
+``mlx_pixel_put`` で 1 ピクセルずつ描く方法は、数百セルの迷路には遅すぎ
+るからである。
 """
 
 from __future__ import annotations
@@ -54,21 +54,21 @@ _BACKGROUND = 0x101014
 
 
 class MlxUnavailable(Exception):
-    """Raised when the MiniLibX cannot be used on this machine."""
+    """この環境で MiniLibX を使えないときに送出する。"""
 
 
 def ansi256_to_rgb(index: int) -> int:
-    """Convert an xterm 256-colour index into a ``0xRRGGBB`` value.
+    """xterm の 256 色番号を ``0xRRGGBB`` の値に変換する。
 
-    The terminal renderer and the graphical one share the same
-    :class:`~amazeing.render.Theme` objects, so the colours have to be
-    translated from the palette used by the ANSI escape sequences.
+    端末描画とグラフィカル描画は同じ :class:`~amazeing.render.Theme` を
+    共有しているので、ANSI エスケープシーケンス用のパレットから色を
+    変換する必要がある。
 
     Args:
-        index: A colour index between 0 and 255.
+        index: 0 から 255 までの色番号。
 
     Returns:
-        The matching 24 bit RGB colour.
+        対応する 24 ビットの RGB 色。
     """
     if index < 16:
         return _BASE_COLOURS[index]
@@ -83,13 +83,14 @@ def ansi256_to_rgb(index: int) -> int:
 
 
 def load_mlx() -> Any:
-    """Import the MiniLibX wrapper.
+    """MiniLibX のラッパーを読み込む。
 
     Returns:
-        The ``mlx.Mlx`` class.
+        ``mlx.Mlx`` クラス。
 
     Raises:
-        MlxUnavailable: If the package or its shared library is missing.
+        MlxUnavailable: パッケージまたは共有ライブラリが見つからない
+            場合。
     """
     try:
         from mlx import Mlx
@@ -106,7 +107,7 @@ def load_mlx() -> Any:
 
 
 class MlxViewer:
-    """Display a maze in a MiniLibX window and handle the key events."""
+    """MiniLibX のウィンドウに迷路を表示し、キー入力を処理する。"""
 
     def __init__(
         self,
@@ -114,15 +115,16 @@ class MlxViewer:
         mlx_factory: Optional[Callable[[], Any]] = None,
         scale: Optional[int] = None,
     ) -> None:
-        """Prepare a viewer for ``session``.
+        """``session`` を表示するビューアを用意する。
 
         Args:
-            session: The session holding the maze and the display options.
-            mlx_factory: Callable returning a MiniLibX instance; the real
-                ``mlx.Mlx`` class is used by default.  Injecting a double
-                here is what makes the viewer testable without a display.
-            scale: Size in pixels of a half-cell; computed from the screen
-                size when omitted.
+            session: 迷路と表示オプションを保持するセッション。
+            mlx_factory: MiniLibX のインスタンスを返す呼び出し可能
+                オブジェクト。既定では本物の ``mlx.Mlx`` クラスを使う。
+                ここにテスト用の代役を差し込めるおかげで、ディスプレイ
+                なしでもビューアを試験できる。
+            scale: 半セル 1 つのピクセル数。省略すると画面サイズから
+                計算する。
         """
         self.session = session
         self._factory: Callable[[], Any] = (
@@ -144,26 +146,26 @@ class MlxViewer:
     # ------------------------------------------------------------------
     @property
     def canvas_cols(self) -> int:
-        """Number of half-cells of the canvas, horizontally."""
+        """キャンバスの横方向の半セル数。"""
         return 2 * self.session.generator.width + 1
 
     @property
     def canvas_rows(self) -> int:
-        """Number of half-cells of the canvas, vertically."""
+        """キャンバスの縦方向の半セル数。"""
         return 2 * self.session.generator.height + 1
 
     @property
     def image_width(self) -> int:
-        """Width of the maze image, in pixels."""
+        """迷路画像の幅（ピクセル）。"""
         return self.canvas_cols * self.scale
 
     @property
     def image_height(self) -> int:
-        """Height of the maze image, in pixels."""
+        """迷路画像の高さ（ピクセル）。"""
         return self.canvas_rows * self.scale
 
     def _pick_scale(self) -> int:
-        """Choose the biggest half-cell size fitting on the screen."""
+        """画面に収まる範囲で最大の半セルサイズを選ぶ。"""
         if self._wanted_scale is not None:
             return max(1, self._wanted_scale)
         try:
@@ -183,7 +185,7 @@ class MlxViewer:
     # Colours
     # ------------------------------------------------------------------
     def _palette(self) -> Dict[Token, int]:
-        """Map every canvas token to a 24 bit RGB colour."""
+        """キャンバスの各トークンを 24 ビットの RGB 色に対応付ける。"""
         theme: Theme = self.session.theme
         pattern = (
             theme.pattern if self.session.pattern_colour else theme.wall
@@ -198,17 +200,17 @@ class MlxViewer:
         }
 
     def _pixel_bytes(self, colour: int) -> bytes:
-        """Encode a colour the way the MiniLibX image expects it."""
+        """MiniLibX の画像が期待する形式で色を符号化する。"""
         return colour.to_bytes(4, sys.byteorder)[: self._bytes_per_pixel]
 
     # ------------------------------------------------------------------
     # Window life cycle
     # ------------------------------------------------------------------
     def open(self) -> None:
-        """Create the window and the image.
+        """ウィンドウと画像を作る。
 
         Raises:
-            MlxUnavailable: If the display or the image cannot be created.
+            MlxUnavailable: ディスプレイまたは画像を用意できない場合。
         """
         self.mlx = self._factory()
         self.mlx_ptr = self.mlx.mlx_init()
@@ -229,10 +231,10 @@ class MlxViewer:
         self._new_image()
 
     def _new_image(self) -> None:
-        """Allocate the image the maze is drawn into.
+        """迷路を描き込むための画像を確保する。
 
         Raises:
-            MlxUnavailable: If the image cannot be created.
+            MlxUnavailable: 画像を作れない場合。
         """
         self.img_ptr = self.mlx.mlx_new_image(
             self.mlx_ptr, self.image_width, self.image_height
@@ -247,7 +249,7 @@ class MlxViewer:
         self._size_line = int(size_line)
 
     def close(self) -> None:
-        """Destroy the image and the window, and leave the main loop."""
+        """画像とウィンドウを破棄し、メインループを抜ける。"""
         if self.mlx is None:
             return
         try:
@@ -267,11 +269,11 @@ class MlxViewer:
     # Drawing
     # ------------------------------------------------------------------
     def build_rows(self) -> List[bytes]:
-        """Render the maze into one packed pixel row per canvas row.
+        """迷路を、キャンバス 1 行につき 1 本のピクセル列として描く。
 
         Returns:
-            ``canvas_rows`` byte strings, each holding ``image_width``
-            pixels ready to be copied into the MiniLibX image.
+            ``canvas_rows`` 個のバイト列。それぞれ ``image_width`` 個の
+            ピクセルを持ち、そのまま MiniLibX の画像に転写できる。
         """
         canvas = Canvas(self.session.generator)
         canvas.paint_pattern()
@@ -288,7 +290,7 @@ class MlxViewer:
         ]
 
     def draw(self) -> None:
-        """Redraw the maze and push it to the window."""
+        """迷路を描き直し、ウィンドウへ転送する。"""
         rows = self.build_rows()
         stride = self._size_line or self.image_width * self._bytes_per_pixel
         for canvas_y, packed in enumerate(rows):
@@ -302,7 +304,7 @@ class MlxViewer:
         self._draw_footer()
 
     def _draw_footer(self) -> None:
-        """Write the help line and the maze statistics under the maze."""
+        """迷路の下にヘルプ行と迷路の統計情報を書く。"""
         white = 0xFFFFFF
         grey = 0x9AA0A6
         self.mlx.mlx_string_put(
@@ -318,15 +320,15 @@ class MlxViewer:
     # Events
     # ------------------------------------------------------------------
     def on_key(self, keycode: int, param: Any = None) -> None:
-        """Handle a key press.
+        """キー押下を処理する。
 
         Args:
-            keycode: The X11 keysym reported by the MiniLibX.
-            param: The user pointer given to ``mlx_key_hook``, unused.
+            keycode: MiniLibX が通知する X11 のキーシム。
+            param: ``mlx_key_hook`` に渡した利用者ポインタ。未使用。
 
         Note:
-            This runs as a C callback: an exception escaping here would be
-            swallowed by ctypes, so everything is caught and reported.
+            これは C のコールバックとして呼ばれる。ここから例外が抜ける
+            と ctypes に握り潰されてしまうため、すべて捕まえて報告する。
         """
         try:
             self._dispatch(keycode)
@@ -334,7 +336,7 @@ class MlxViewer:
             print(f"Error: {error}", file=sys.stderr)
 
     def _dispatch(self, keycode: int) -> None:
-        """Apply the action bound to ``keycode``, then redraw."""
+        """``keycode`` に割り当てられた動作を実行し、描き直す。"""
         session = self.session
         if keycode in (KEY_QUIT, KEY_Q, KEY_ESCAPE):
             self.close()
@@ -359,17 +361,17 @@ class MlxViewer:
         self.draw()
 
     def on_close(self, param: Any = None) -> None:
-        """Handle a click on the window close button."""
+        """ウィンドウの閉じるボタンの押下を処理する。"""
         self.close()
 
     # ------------------------------------------------------------------
     # Main loop
     # ------------------------------------------------------------------
     def run(self) -> None:
-        """Open the window, draw the maze and loop until the user quits.
+        """ウィンドウを開いて迷路を描き、終了されるまでループする。
 
         Raises:
-            MlxUnavailable: If the window cannot be opened.
+            MlxUnavailable: ウィンドウを開けない場合。
         """
         self.open()
         print(f"MiniLibX window -- {_HELP}")
@@ -395,13 +397,14 @@ def show_in_window(
     session: Session,
     mlx_factory: Optional[Callable[[], Any]] = None,
 ) -> None:
-    """Display ``session`` in a MiniLibX window.
+    """``session`` を MiniLibX のウィンドウに表示する。
 
     Args:
-        session: The session holding the maze and the display options.
-        mlx_factory: Callable returning a MiniLibX instance, for tests.
+        session: 迷路と表示オプションを保持するセッション。
+        mlx_factory: MiniLibX のインスタンスを返す呼び出し可能
+            オブジェクト。テスト用。
 
     Raises:
-        MlxUnavailable: If the MiniLibX cannot be used.
+        MlxUnavailable: MiniLibX を使えない場合。
     """
     MlxViewer(session, mlx_factory=mlx_factory).run()

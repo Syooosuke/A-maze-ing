@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
-"""A-Maze-ing -- generate a maze from a configuration file.
+"""A-Maze-ing -- 設定ファイルから迷路を生成する。
 
-Usage::
+使い方::
 
     python3 a_maze_ing.py config.txt
 
-The maze is written to the file named by ``OUTPUT_FILE`` and displayed in
-the terminal.  When the standard input is a terminal, an interactive menu
-lets the user regenerate the maze, toggle the shortest path and change the
-colours.
+生成した迷路は ``OUTPUT_FILE`` が指すファイルに書き出し、端末にも表示
+する。標準入力が端末のときは対話メニューを開き、迷路の再生成、最短経路
+の表示切り替え、配色の変更ができる。
 """
 
 from __future__ import annotations
@@ -27,16 +26,16 @@ USAGE = "Usage: python3 a_maze_ing.py <config file>"
 
 
 def build_generator(config: MazeConfig) -> MazeGenerator:
-    """Create the generator described by ``config``.
+    """``config`` が表す生成器を作る。
 
     Args:
-        config: A validated configuration.
+        config: 検証済みの設定。
 
     Returns:
-        A generator, ready to be used but not generated yet.
+        すぐ使える生成器。ただし生成はまだ実行していない。
 
     Raises:
-        MazeError: If the configuration describes an impossible maze.
+        MazeError: 設定が生成不可能な迷路を表している場合。
     """
     return MazeGenerator(
         width=config.width,
@@ -51,7 +50,7 @@ def build_generator(config: MazeConfig) -> MazeGenerator:
 
 
 def use_colour(config: MazeConfig) -> bool:
-    """Tell whether the terminal output may use ANSI colours."""
+    """端末出力で ANSI カラーを使ってよいかどうかを返す。"""
     return (
         config.color
         and os.environ.get("NO_COLOR") is None
@@ -60,13 +59,13 @@ def use_colour(config: MazeConfig) -> bool:
 
 
 def run_program(config_path: str) -> int:
-    """Load a configuration, generate a maze and display it.
+    """設定を読み込み、迷路を生成して表示する。
 
     Args:
-        config_path: Path of the configuration file.
+        config_path: 設定ファイルのパス。
 
     Returns:
-        The exit status of the program.
+        プログラムの終了ステータス。
     """
     config = load_config(config_path)
     generator = build_generator(config)
@@ -91,14 +90,14 @@ def run_program(config_path: str) -> int:
 
 
 def show_window(session: Session) -> bool:
-    """Try to display the maze in a MiniLibX window.
+    """MiniLibX のウィンドウで迷路を表示してみる。
 
     Args:
-        session: The session holding the maze and the display options.
+        session: 迷路と表示オプションを保持するセッション。
 
     Returns:
-        ``True`` when the window was shown, ``False`` when the caller must
-        fall back to the terminal rendering.
+        ウィンドウを表示できたら ``True``。呼び出し側が端末描画へ
+        フォールバックすべきなら ``False``。
     """
     try:
         show_in_window(session)
@@ -113,13 +112,13 @@ def show_window(session: Session) -> bool:
 
 
 def main(argv: Optional[List[str]] = None) -> int:
-    """Entry point of the program.
+    """プログラムのエントリポイント。
 
     Args:
-        argv: Command line arguments, ``sys.argv`` by default.
+        argv: コマンドライン引数。既定では ``sys.argv``。
 
     Returns:
-        ``0`` on success, ``1`` on any handled error.
+        成功なら ``0``、処理済みのエラーが起きたなら ``1``。
     """
     args = sys.argv if argv is None else argv
     if len(args) != 2:

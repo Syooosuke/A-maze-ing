@@ -1,4 +1,4 @@
-"""Parsing and validation of the ``KEY=VALUE`` configuration file."""
+"""``KEY=VALUE`` 形式の設定ファイルの解析と検証。"""
 
 from __future__ import annotations
 
@@ -41,26 +41,26 @@ _DISPLAY_ALIASES = {
 
 
 class ConfigError(Exception):
-    """Raised when the configuration file cannot be used."""
+    """設定ファイルを使えないときに送出する。"""
 
 
 @dataclass(frozen=True)
 class MazeConfig:
-    """Validated content of a configuration file.
+    """検証済みの設定ファイルの内容。
 
     Attributes:
-        width: Number of columns of the maze.
-        height: Number of rows of the maze.
-        entry: ``(x, y)`` coordinates of the entrance.
-        exit: ``(x, y)`` coordinates of the exit.
-        output_file: Path of the file receiving the generated maze.
-        perfect: ``True`` for a perfect maze, ``False`` for a game board.
-        seed: Seed making the generation reproducible, or ``None``.
-        algorithm: Name of the spanning tree algorithm to use.
-        pattern: Whether the "42" pattern must be drawn.
-        color: Whether the terminal rendering may use ANSI colours.
-        display: ``"terminal"`` for the ASCII rendering, ``"mlx"`` for a
-            MiniLibX window.
+        width: 迷路の列数。
+        height: 迷路の行数。
+        entry: 入口の ``(x, y)`` 座標。
+        exit: 出口の ``(x, y)`` 座標。
+        output_file: 生成した迷路を書き出すファイルのパス。
+        perfect: 完全迷路なら ``True``、ゲーム盤なら ``False``。
+        seed: 生成を再現可能にするシード。指定がなければ ``None``。
+        algorithm: 使用する全域木アルゴリズムの名前。
+        pattern: "42" のパターンを描くかどうか。
+        color: 端末描画で ANSI カラーを使ってよいかどうか。
+        display: ASCII 描画なら ``"terminal"``、MiniLibX ウィンドウなら
+            ``"mlx"``。
     """
 
     width: int
@@ -77,7 +77,7 @@ class MazeConfig:
 
 
 def _parse_integer(key: str, raw: str) -> int:
-    """Convert ``raw`` into any integer, negative values included."""
+    """``raw`` を整数に変換する。負の値も許す。"""
     try:
         return int(raw)
     except ValueError:
@@ -85,7 +85,7 @@ def _parse_integer(key: str, raw: str) -> int:
 
 
 def _parse_positive_int(key: str, raw: str) -> int:
-    """Convert ``raw`` into a strictly positive integer."""
+    """``raw`` を正の整数に変換する。0 以下は認めない。"""
     value = _parse_integer(key, raw)
     if value <= 0:
         raise ConfigError(f"{key}: {value} must be strictly positive")
@@ -93,7 +93,7 @@ def _parse_positive_int(key: str, raw: str) -> int:
 
 
 def _parse_bool(key: str, raw: str) -> bool:
-    """Convert ``raw`` into a boolean."""
+    """``raw`` を真偽値に変換する。"""
     lowered = raw.strip().lower()
     if lowered in _TRUE_WORDS:
         return True
@@ -105,7 +105,7 @@ def _parse_bool(key: str, raw: str) -> bool:
 
 
 def _parse_coord(key: str, raw: str) -> Coord:
-    """Convert ``raw`` into a ``(x, y)`` pair of coordinates."""
+    """``raw`` を ``(x, y)`` の座標の組に変換する。"""
     parts = raw.split(",")
     if len(parts) != 2:
         raise ConfigError(
@@ -123,7 +123,7 @@ def _parse_coord(key: str, raw: str) -> Coord:
 
 
 def _parse_algorithm(key: str, raw: str) -> str:
-    """Check that ``raw`` names a known generation algorithm."""
+    """``raw`` が既知の生成アルゴリズム名かどうかを確かめる。"""
     lowered = raw.strip().lower()
     if lowered not in ALGORITHMS:
         known = ", ".join(ALGORITHMS)
@@ -132,7 +132,7 @@ def _parse_algorithm(key: str, raw: str) -> str:
 
 
 def _parse_display(key: str, raw: str) -> str:
-    """Check that ``raw`` names a known display mode."""
+    """``raw`` が既知の表示モード名かどうかを確かめる。"""
     lowered = raw.strip().lower()
     if lowered not in _DISPLAY_ALIASES:
         known = ", ".join(DISPLAYS)
@@ -141,23 +141,24 @@ def _parse_display(key: str, raw: str) -> str:
 
 
 def _parse_path(key: str, raw: str) -> str:
-    """Check that ``raw`` is a usable file name."""
+    """``raw`` が使えるファイル名かどうかを確かめる。"""
     if not raw:
         raise ConfigError(f"{key}: the file name must not be empty")
     return raw
 
 
 def read_pairs(path: str) -> Dict[str, str]:
-    """Read the raw ``KEY=VALUE`` pairs of a configuration file.
+    """設定ファイルから ``KEY=VALUE`` の組を未加工のまま読み取る。
 
     Args:
-        path: Path of the configuration file.
+        path: 設定ファイルのパス。
 
     Returns:
-        A mapping of upper-cased keys to their raw string value.
+        大文字化したキーから、未加工の文字列値への対応表。
 
     Raises:
-        ConfigError: If the file is missing, unreadable or malformed.
+        ConfigError: ファイルが存在しない、読めない、または書式が不正な
+            場合。
     """
     try:
         with open(path, "r", encoding="utf-8") as stream:
@@ -198,16 +199,17 @@ def read_pairs(path: str) -> Dict[str, str]:
 
 
 def load_config(path: str) -> MazeConfig:
-    """Read and validate a configuration file.
+    """設定ファイルを読み込んで検証する。
 
     Args:
-        path: Path of the configuration file.
+        path: 設定ファイルのパス。
 
     Returns:
-        The validated configuration.
+        検証済みの設定。
 
     Raises:
-        ConfigError: If the file is missing, malformed or inconsistent.
+        ConfigError: ファイルが存在しない、書式が不正、または内容に矛盾
+            がある場合。
     """
     pairs = read_pairs(path)
     missing = [key for key in MANDATORY_KEYS if key not in pairs]
@@ -241,13 +243,13 @@ def load_config(path: str) -> MazeConfig:
 
 
 def _validate(config: MazeConfig) -> None:
-    """Check the semantic consistency of a configuration.
+    """設定の意味的な整合性を確かめる。
 
     Args:
-        config: The configuration to check.
+        config: 確認する設定。
 
     Raises:
-        ConfigError: If the described maze cannot exist.
+        ConfigError: 設定が表す迷路が存在しえない場合。
     """
     problems: List[str] = []
     if config.width < 2 or config.height < 2:

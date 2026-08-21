@@ -1,5 +1,7 @@
 *This project has been created as part of the 42 curriculum by syokota, atajima.*
 
+**English** | [日本語](README.ja.md)
+
 > **TODO before submitting:** replace `<login1>` above (and add
 > `, <login2>, <login3>` if you worked as a team) with your real 42
 > login(s), and fill in the *Team and project management* section at the
@@ -393,7 +395,9 @@ board = [
 ```
 
 The full documentation is also the module docstring, so `pydoc mazegen` or
-`help(mazegen)` works after installing the package.
+`help(mazegen)` works after installing the package. It holds both an English
+and a Japanese version; the docstrings of the rest of the code are in
+Japanese.
 
 ## Advanced features
 
@@ -481,7 +485,8 @@ unnoticed.
 ├── pyproject.toml                    # package build configuration
 ├── Makefile
 ├── LICENSE.md                        # MIT, and why
-└── README.md
+├── README.md                         # this file (English)
+└── README.ja.md                      # Japanese translation
 ```
 
 Only the files required by the subject are committed: no tool

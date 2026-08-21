@@ -1,4 +1,4 @@
-"""Writing of the maze output file."""
+"""迷路の出力ファイルの書き出し。"""
 
 from __future__ import annotations
 
@@ -8,21 +8,20 @@ from mazegen import MazeGenerator
 
 
 class OutputError(Exception):
-    """Raised when the maze cannot be written to disk."""
+    """迷路をディスクに書き出せないときに送出する。"""
 
 
 def build_lines(generator: MazeGenerator) -> List[str]:
-    """Build the exact content of the output file, line by line.
+    """出力ファイルの内容を 1 行ずつそのまま組み立てる。
 
-    The layout is the one described by the subject: one hexadecimal digit
-    per cell, one line per row, an empty line, then the entry, the exit
-    and the shortest path.
+    並びは subject が指定するとおりで、1 セルにつき 16 進数 1 桁、1 行に
+    つき 1 行分のセル、空行、続いて入口、出口、最短経路となる。
 
     Args:
-        generator: A generator on which ``generate()`` has been called.
+        generator: ``generate()`` を呼び終えた生成器。
 
     Returns:
-        The lines of the file, without their trailing newline.
+        ファイルの各行。末尾の改行は含まない。
     """
     lines = generator.to_hex_lines()
     lines.append("")
@@ -33,14 +32,14 @@ def build_lines(generator: MazeGenerator) -> List[str]:
 
 
 def write_maze(path: str, generator: MazeGenerator) -> None:
-    """Write the maze to ``path``.
+    """迷路を ``path`` に書き出す。
 
     Args:
-        path: Destination file; it is overwritten when it exists.
-        generator: A generator on which ``generate()`` has been called.
+        path: 出力先のファイル。既に存在する場合は上書きする。
+        generator: ``generate()`` を呼び終えた生成器。
 
     Raises:
-        OutputError: If the file cannot be written.
+        OutputError: ファイルを書き出せない場合。
     """
     payload = "".join(f"{line}\n" for line in build_lines(generator))
     try:
