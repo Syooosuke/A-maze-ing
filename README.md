@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by syokta, atajima.*
+*This project has been created as part of the 42 curriculum by syokota, atajima.*
 
 > **TODO before submitting:** replace `<login1>` above (and add
 > `, <login2>, <login3>` if you worked as a team) with your real 42

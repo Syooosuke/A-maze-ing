@@ -410,14 +410,15 @@ class MazeGenerator:
         total = self.width * self.height - len(blocked)
         if total <= 0:
             return False
-        start: Optional[Coord] = None
-        for y in range(self.height):
-            for x in range(self.width):
-                if (x, y) not in blocked:
-                    start = (x, y)
-                    break
-            if start is not None:
-                break
+        start = next(
+            (
+                (x, y)
+                for y in range(self.height)
+                for x in range(self.width)
+                if (x, y) not in blocked
+            ),
+            None,
+        )
         if start is None:
             return False
         seen: Set[Coord] = {start}
@@ -453,18 +454,16 @@ class MazeGenerator:
         stack: List[Coord] = [start]
         while stack:
             x, y = stack[-1]
-            options = [
-                direction
-                for direction in _DIRECTIONS
-                if self._step(x, y, direction) not in visited
-                and self._is_corridor(*self._step(x, y, direction))
-            ]
+            options: List[Tuple[int, Coord]] = []
+            for direction in _DIRECTIONS:
+                cell = self._step(x, y, direction)
+                if cell not in visited and self._is_corridor(*cell):
+                    options.append((direction, cell))
             if not options:
                 stack.pop()
                 continue
-            direction = self._rng.choice(options)
+            direction, cell = self._rng.choice(options)
             self._carve(x, y, direction)
-            cell = self._step(x, y, direction)
             visited.add(cell)
             stack.append(cell)
 
@@ -497,13 +496,20 @@ class MazeGenerator:
             if self._is_corridor(*neighbour) and neighbour not in visited:
                 frontier.append((cell, direction))
 
-    def _carve_kruskal(self) -> None:
-        """Randomised Kruskal algorithm, using a union-find structure."""
-        edges: List[Tuple[Coord, int]] = []
+    def _corridor_edges(self) -> Iterator[Tuple[Coord, int]]:
+        """Yield every wall shared by two corridor cells, once each.
+
+        Only the east and south walls are looked at, so the wall between
+        two cells is reported by the northern or western one only.
+        """
         for x, y in self._region:
             for direction in (EAST, SOUTH):
                 if self._is_corridor(*self._step(x, y, direction)):
-                    edges.append(((x, y), direction))
+                    yield (x, y), direction
+
+    def _carve_kruskal(self) -> None:
+        """Randomised Kruskal algorithm, using a union-find structure."""
+        edges: List[Tuple[Coord, int]] = list(self._corridor_edges())
         self._rng.shuffle(edges)
         parent: Dict[Coord, Coord] = {cell: cell for cell in self._region}
 
@@ -573,13 +579,11 @@ class MazeGenerator:
         loops = self.loop_count()
         if loops >= target:
             return
-        candidates: List[Tuple[Coord, int]] = []
-        for x, y in self._region:
-            for direction in (EAST, SOUTH):
-                if not self.grid[y][x] & direction:
-                    continue
-                if self._is_corridor(*self._step(x, y, direction)):
-                    candidates.append(((x, y), direction))
+        candidates: List[Tuple[Coord, int]] = [
+            ((x, y), direction)
+            for (x, y), direction in self._corridor_edges()
+            if self.grid[y][x] & direction
+        ]
         self._rng.shuffle(candidates)
         for (x, y), direction in candidates:
             if loops >= target:
@@ -706,6 +710,17 @@ class MazeGenerator:
                     edges += 1
         return edges - len(self._region) + self._component_count()
 
+    def _reachable_from(self, start: Coord) -> Set[Coord]:
+        """Return every cell connected to ``start`` by open walls."""
+        seen: Set[Coord] = {start}
+        queue: deque[Coord] = deque([start])
+        while queue:
+            for neighbour in self.open_neighbours(*queue.popleft()):
+                if neighbour not in seen:
+                    seen.add(neighbour)
+                    queue.append(neighbour)
+        return seen
+
     def _component_count(self) -> int:
         """Count the connected groups of corridor cells."""
         seen: Set[Coord] = set()
@@ -714,14 +729,7 @@ class MazeGenerator:
             if cell in seen:
                 continue
             components += 1
-            seen.add(cell)
-            queue: deque[Coord] = deque([cell])
-            while queue:
-                current = queue.popleft()
-                for neighbour in self.open_neighbours(*current):
-                    if neighbour not in seen:
-                        seen.add(neighbour)
-                        queue.append(neighbour)
+            seen |= self._reachable_from(cell)
         return components
 
     def solve(

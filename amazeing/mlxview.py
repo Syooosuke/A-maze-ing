@@ -15,8 +15,7 @@ from __future__ import annotations
 import sys
 from typing import Any, Callable, Dict, List, Optional
 
-from amazeing.output import OutputError, write_maze
-from amazeing.render import THEMES, Canvas, Theme, Token
+from amazeing.render import Canvas, Theme, Token
 from amazeing.ui import Session
 from mazegen import MazeError
 
@@ -347,29 +346,17 @@ class MlxViewer:
                 print(f"Error: {error}", file=sys.stderr)
                 return
         elif keycode == KEY_PATH:
-            session.show_path = not session.show_path
+            session.toggle_path()
         elif keycode == KEY_COLOURS:
-            session.theme_index = (
-                session.theme_index + 1
-            ) % len(THEMES)
+            session.next_theme()
         elif keycode == KEY_PATTERN:
-            session.pattern_colour = not session.pattern_colour
+            session.toggle_pattern_colour()
         elif keycode == KEY_SAVE:
-            self._save()
+            session.save()
             return
         else:
             return
         self.draw()
-
-    def _save(self) -> None:
-        """Write the maze to the configured output file."""
-        path = self.session.config.output_file
-        try:
-            write_maze(path, self.session.generator)
-        except OutputError as error:
-            print(f"Error: {error}", file=sys.stderr)
-            return
-        print(f"Maze written to {path}")
 
     def on_close(self, param: Any = None) -> None:
         """Handle a click on the window close button."""
