@@ -1,171 +1,31 @@
-"""mazegen -- a small, dependency-free maze generator.
+"""mazegen -- 依存関係のない小さな迷路生成モジュール。
 
-This module is the reusable part of the *A-Maze-ing* project.  It exposes a
-single class, :class:`MazeGenerator`, which builds rectangular mazes, keeps
-them coherent (a wall is always encoded the same way by both cells sharing
-it) and can solve them.
+長方形の迷路を作り、解いて、壁の対応関係が崩れないように保つ。公開する
+クラスは MazeGenerator ひとつだけ。
 
-Installation
-------------
-The module is shipped as a standard Python package::
-
-    pip install mazegen-1.0.0-py3-none-any.whl
-
-Quick start
------------
-::
+使い方::
 
     from mazegen import MazeGenerator
 
     gen = MazeGenerator(width=21, height=15, seed=42)
     gen.generate()
 
-    print(gen.grid[0])           # wall bitmasks of the first row
-    print(gen.solution)          # [(0, 0), (1, 0), ...]
-    print(gen.directions)        # 'ESSEEN...'
-    print("\\n".join(gen.to_hex_lines()))
+    print(gen.grid[0])       # 1 行目の壁ビットマスク
+    print(gen.solution)      # [(0, 0), (1, 0), ...]
+    print(gen.directions)    # 'ESSEEN...'
 
-Custom parameters
------------------
-``MazeGenerator`` accepts:
+主なコンストラクタ引数: width/height（格子の大きさ、2 以上）、
+entry/exit（入口と出口の座標。exit の既定値は右下）、perfect（True
+なら経路が 1 本の完全迷路、False ならループのある編み込み盤）、seed
+（再現用のシード）、algorithm（backtracker/prim/kruskal）、pattern
+（"42" のパターンを描くかどうか）。
 
-======================  ====================================================
-``width``, ``height``   Size of the grid, in cells (>= 2).
-``entry``, ``exit``     ``(x, y)`` coordinates; must differ and be in bounds.
-                        ``exit`` defaults to the bottom-right cell.
-``perfect``             ``True``  -> exactly one path between entry and exit.
-                        ``False`` -> braided, Pac-Man like board with loops.
-``seed``                ``int`` for reproducible mazes, ``None`` for random.
-                        The seed actually used is kept in ``seed_used``.
-``algorithm``           One of :data:`ALGORITHMS`: ``'backtracker'``,
-                        ``'prim'`` or ``'kruskal'``.
-``pattern``             Draw the ``'42'`` pattern with fully closed cells.
-``pattern_text``        Text drawn by the pattern (digits ``'4'``/``'2'``).
-======================  ====================================================
+generate() を呼んだ後は、grid（各セルの壁ビットマスク。NORTH=1,
+EAST=2, SOUTH=4, WEST=8）、solution（入口から出口への最短経路）、
+directions（同じ経路を N/E/S/W で表した文字列）、pattern_cells（描いた
+パターンのセル集合）、seed_used（実際に使ったシード）から結果を読める。
 
-Accessing the generated structure
----------------------------------
-After :meth:`MazeGenerator.generate`:
-
-``grid``
-    ``List[List[int]]`` indexed as ``grid[y][x]``.  Each value is a bitmask
-    of the **closed** walls: :data:`NORTH` (1), :data:`EAST` (2),
-    :data:`SOUTH` (4), :data:`WEST` (8).
-``pattern_cells``
-    ``Set[Tuple[int, int]]`` -- the fully closed cells drawing the ``42``.
-``pattern_warning``
-    ``Optional[str]`` -- why the pattern could not be drawn, if it was not.
-``solution``
-    ``List[Tuple[int, int]]`` -- shortest path from entry to exit.
-``directions``
-    ``str`` -- the same path as ``N`` / ``E`` / ``S`` / ``W`` letters.
-``seed_used``
-    ``int`` -- seed of the last generation, replay it to get the same maze.
-
-Useful methods: :meth:`MazeGenerator.is_open`,
-:meth:`MazeGenerator.open_neighbours`, :meth:`MazeGenerator.solve`,
-:meth:`MazeGenerator.to_hex_lines`, :meth:`MazeGenerator.dead_ends`,
-:meth:`MazeGenerator.loop_count` and :meth:`MazeGenerator.check`.
-
-Example -- reusing the generator in a game::
-
-    gen = MazeGenerator(19, 15, perfect=False, seed=7).generate()
-    for y, row in enumerate(gen.grid):
-        for x, walls in enumerate(row):
-            if (x, y) in gen.pattern_cells:
-                board[y][x] = "wall"
-            elif gen.is_open(x, y, EAST):
-                board[y][x] = "corridor"
-
-Licence: MIT -- see ``LICENSE.md`` in the project repository.
-
-日本語版 (Japanese version)
----------------------------
-mazegen -- 依存関係のない小さな迷路生成モジュール。
-
-このモジュールは *A-Maze-ing* プロジェクトの再利用可能な部分である。
-公開するクラスは :class:`MazeGenerator` ひとつだけで、長方形の迷路を
-作り、それを整合させたまま保ち（1 枚の壁は、それを共有する両方のセル
-から常に同じように符号化される）、解くこともできる。
-
-インストール
-~~~~~~~~~~~~
-標準的な Python パッケージとして配布している::
-
-    pip install mazegen-1.0.0-py3-none-any.whl
-
-クイックスタート
-~~~~~~~~~~~~~~~~
-::
-
-    from mazegen import MazeGenerator
-
-    gen = MazeGenerator(width=21, height=15, seed=42)
-    gen.generate()
-
-    print(gen.grid[0])           # 1 行目の壁ビットマスク
-    print(gen.solution)          # [(0, 0), (1, 0), ...]
-    print(gen.directions)        # 'ESSEEN...'
-    print("\\n".join(gen.to_hex_lines()))
-
-パラメータの指定
-~~~~~~~~~~~~~~~~
-``MazeGenerator`` が受け取る引数:
-
-``width``, ``height``
-    格子の大きさ（セル数）。2 以上であること。
-``entry``, ``exit``
-    ``(x, y)`` 座標。互いに異なり、格子の内側にあること。``exit`` の
-    既定値は右下のセル。
-``perfect``
-    ``True`` なら入口と出口の間の経路がちょうど 1 本。``False`` なら
-    ループを持つ Pac-Man 風の編み込み盤。
-``seed``
-    ``int`` を渡すと再現可能な迷路になる。``None`` なら毎回ランダム。
-    実際に使われたシードは ``seed_used`` に残る。
-``algorithm``
-    :data:`ALGORITHMS` のいずれか。``'backtracker'``、``'prim'``、
-    ``'kruskal'``。
-``pattern``
-    完全に閉じたセルで ``'42'`` のパターンを描くかどうか。
-``pattern_text``
-    パターンが描く文字（数字 ``'4'`` と ``'2'``）。
-
-生成した構造へのアクセス
-~~~~~~~~~~~~~~~~~~~~~~~~
-:meth:`MazeGenerator.generate` を呼んだあと:
-
-``grid``
-    ``grid[y][x]`` で参照する ``List[List[int]]``。各値は **閉じた**
-    壁のビットマスクで、:data:`NORTH` (1)、:data:`EAST` (2)、
-    :data:`SOUTH` (4)、:data:`WEST` (8) からなる。
-``pattern_cells``
-    ``Set[Tuple[int, int]]`` -- ``42`` を描く、完全に閉じたセル。
-``pattern_warning``
-    ``Optional[str]`` -- パターンを描けなかった場合、その理由。
-``solution``
-    ``List[Tuple[int, int]]`` -- 入口から出口への最短経路。
-``directions``
-    ``str`` -- 同じ経路を ``N`` / ``E`` / ``S`` / ``W`` で表したもの。
-``seed_used``
-    ``int`` -- 直近の生成に使ったシード。再指定すれば同じ迷路が出る。
-
-便利なメソッド: :meth:`MazeGenerator.is_open`、
-:meth:`MazeGenerator.open_neighbours`、:meth:`MazeGenerator.solve`、
-:meth:`MazeGenerator.to_hex_lines`、:meth:`MazeGenerator.dead_ends`、
-:meth:`MazeGenerator.loop_count`、:meth:`MazeGenerator.check`。
-
-例 -- ゲームで生成器を再利用する::
-
-    gen = MazeGenerator(19, 15, perfect=False, seed=7).generate()
-    for y, row in enumerate(gen.grid):
-        for x, walls in enumerate(row):
-            if (x, y) in gen.pattern_cells:
-                board[y][x] = "wall"
-            elif gen.is_open(x, y, EAST):
-                board[y][x] = "corridor"
-
-ライセンス: MIT -- プロジェクトリポジトリの ``LICENSE.md`` を参照。
+ライセンス: MIT -- LICENSE.md を参照。
 """
 
 from __future__ import annotations
@@ -250,16 +110,7 @@ _MAX_PATTERN_RATIO = 0.30
 
 
 def _glyph_shape(text: str, scale: int) -> Tuple[Set[Coord], int, int]:
-    """``text`` を ``scale`` 倍で描いたセルと、その大きさを返す。
-
-    Args:
-        text: 描く文字。いずれもビットマップフォントに存在すること。
-        scale: フォントの 1 ピクセルに掛ける拡大率。
-
-    Returns:
-        ``(cells, width, height)`` の組。``cells`` には描いたピクセルの
-        座標が、左上隅からの相対位置で入る。
-    """
+    """text を scale 倍で描いたピクセル座標の集合と、その全体サイズを返す。"""
     cells: Set[Coord] = set()
     offset = 0
     for char in text:
@@ -282,8 +133,8 @@ class MazeGenerator:
     """長方形の迷路を作り、編み込み、解く。
 
     壁はセルごとのビットマスクとして持つので、迷路の実体は
-    ``List[List[int]]`` にすぎない。壁は必ず両側のセルへ同時に書き込む
-    ため、構造は作り方の時点で整合している。
+    List[List[int]] にすぎない。壁は必ず両側のセルへ同時に書き込むため、
+    構造は作り方の時点で整合している。
     """
 
     def __init__(
@@ -298,46 +149,27 @@ class MazeGenerator:
         pattern: bool = True,
         pattern_text: str = "42",
     ) -> None:
-        """引数を検証し、空の迷路を用意する。
-
-        Args:
-            width: 列数。2 以上であること。
-            height: 行数。2 以上であること。
-            entry: 入口の ``(x, y)`` 座標。
-            exit: 出口の ``(x, y)`` 座標。既定では右下のセル。
-            perfect: 編み込み盤ではなく完全迷路を作る。
-            seed: 生成を再現可能にするシード。
-            algorithm: 全域木アルゴリズム。:data:`ALGORITHMS` を参照。
-            pattern: 完全に閉じたセルで "42" のパターンを描く。
-            pattern_text: パターンが描く文字。
-
-        Raises:
-            MazeError: いずれかの引数が範囲外、または矛盾している場合。
-        """
+        """引数を検証し、空の迷路を用意する。"""
         if width < 2 or height < 2:
             raise MazeError("maze size must be at least 2x2 cells")
         if width > 1000 or height > 1000:
             raise MazeError("maze size must not exceed 1000x1000 cells")
         if algorithm not in ALGORITHMS:
             known = ", ".join(ALGORITHMS)
-            raise MazeError(
-                f"unknown algorithm {algorithm!r} (known: {known})"
-            )
+            raise MazeError(f"unknown algorithm {algorithm!r} (known: {known})")
         for char in pattern_text:
             if char not in _GLYPHS:
                 raise MazeError(f"no glyph available for {char!r}")
 
-        self.width: int = width
-        self.height: int = height
-        self.entry: Coord = entry
-        self.exit: Coord = (
-            (width - 1, height - 1) if exit is None else exit
-        )
-        self.perfect: bool = perfect
-        self.seed: Optional[int] = seed
-        self.algorithm: str = algorithm
-        self.pattern: bool = pattern
-        self.pattern_text: str = pattern_text
+        self.width = width
+        self.height = height
+        self.entry = entry
+        self.exit = (width - 1, height - 1) if exit is None else exit
+        self.perfect = perfect
+        self.seed = seed
+        self.algorithm = algorithm
+        self.pattern = pattern
+        self.pattern_text = pattern_text
 
         self._check_endpoint(self.entry, "ENTRY")
         self._check_endpoint(self.exit, "EXIT")
@@ -348,27 +180,18 @@ class MazeGenerator:
         self.pattern_cells: Set[Coord] = set()
         self.pattern_warning: Optional[str] = None
         self.solution: List[Coord] = []
-        self.directions: str = ""
-        self.seed_used: int = 0
+        self.directions = ""
+        self.seed_used = 0
         self._region: List[Coord] = []
-        self._rng: random.Random = random.Random(seed)
+        self._rng = random.Random(seed)
 
-    # ------------------------------------------------------------------
-    # Generation
-    # ------------------------------------------------------------------
+    # -- generation --
+
     def generate(self, seed: Optional[int] = None) -> "MazeGenerator":
-        """迷路をまるごと作り直す。
+        """迷路をまるごと作り直し、self を返す。
 
-        Args:
-            seed: コンストラクタに渡したシードを上書きする。どちらも
-                ``None`` のときはランダムなシードを引き、``seed_used``
-                に記録する。
-
-        Returns:
-            ``self``。呼び出しを連鎖できるようにするため。
-
-        Raises:
-            MazeError: 迷路を作れない場合（経路がない、格子が空など）。
+        seed を渡すとコンストラクタに渡したシードを上書きする。どちらも
+        None のときはランダムなシードを引き、seed_used に記録する。
         """
         base = seed if seed is not None else self.seed
         if base is None:
@@ -376,9 +199,7 @@ class MazeGenerator:
         self.seed_used = base
         self._rng = random.Random(base)
 
-        self.grid = [
-            [ALL_WALLS] * self.width for _ in range(self.height)
-        ]
+        self.grid = [[ALL_WALLS] * self.width for _ in range(self.height)]
         self.pattern_cells, self.pattern_warning = self._place_pattern()
         self._region = [
             (x, y)
@@ -401,7 +222,7 @@ class MazeGenerator:
         return self
 
     def _check_endpoint(self, cell: Coord, label: str) -> None:
-        """``cell`` が格子の外なら :class:`MazeError` を送出する。"""
+        """cell が格子の外なら MazeError を送出する。"""
         x, y = cell
         if not (0 <= x < self.width and 0 <= y < self.height):
             raise MazeError(
@@ -409,16 +230,10 @@ class MazeGenerator:
                 f"{self.width}x{self.height} maze"
             )
 
-    # ------------------------------------------------------------------
-    # The "42" pattern
-    # ------------------------------------------------------------------
-    def _place_pattern(self) -> Tuple[Set[Coord], Optional[str]]:
-        """パターン "42" が収まる位置を選ぶ。収まらなければ諦める。
+    # -- "42" パターン --
 
-        Returns:
-            パターンのセル。描くのを諦めた場合は、その理由を説明する
-            メッセージも返す。
-        """
+    def _place_pattern(self) -> Tuple[Set[Coord], Optional[str]]:
+        """パターンが収まる位置を探す。収まらなければ空集合と理由を返す。"""
         if not self.pattern or not self.pattern_text:
             return set(), None
 
@@ -458,14 +273,10 @@ class MazeGenerator:
         shape_h: int,
         reserved: Set[Coord],
     ) -> Optional[Set[Coord]]:
-        """迷路を壊さずに ``shape`` を置けるか試す。
+        """shape を、外周から 1 マス空けて予約セルを避けつつ置ける場所を探す。
 
-        パターンは外周との間にセル 1 つ分の余白を残し、予約されたセル
-        （入口、出口、四隅、中央）を覆わず、残りのセルすべてが到達可能
-        なままであること。
-
-        Returns:
-            平行移動したセル。どこにも置けない場合は ``None``。
+        置いた後も残りのセルがすべてつながっている必要がある。置き場所
+        が見つからなければ None を返す。
         """
         if shape_w + 2 > self.width or shape_h + 2 > self.height:
             return None
@@ -493,7 +304,7 @@ class MazeGenerator:
         return None
 
     def _leaves_connected_region(self, blocked: Set[Coord]) -> bool:
-        """``blocked`` 以外のセルが連結のままかどうかを返す。"""
+        """blocked 以外のセルが連結のままかどうかを返す。"""
         total = self.width * self.height - len(blocked)
         if total <= 0:
             return False
@@ -522,9 +333,8 @@ class MazeGenerator:
                 queue.append(cell)
         return len(seen) == total
 
-    # ------------------------------------------------------------------
-    # Spanning tree algorithms
-    # ------------------------------------------------------------------
+    # -- 全域木アルゴリズム --
+
     def _carve_spanning_tree(self) -> None:
         """パターン以外のすべてのセルに全域木を掘る。"""
         if self.algorithm == "prim":
@@ -576,7 +386,7 @@ class MazeGenerator:
         visited: Set[Coord],
         frontier: List[Tuple[Coord, int]],
     ) -> None:
-        """``cell`` の壁のうち、未訪問の通路に面するものを記録する。"""
+        """cell の壁のうち、未訪問の通路に面するものを記録する。"""
         x, y = cell
         for direction in _DIRECTIONS:
             neighbour = self._step(x, y, direction)
@@ -584,10 +394,10 @@ class MazeGenerator:
                 frontier.append((cell, direction))
 
     def _corridor_edges(self) -> Iterator[Tuple[Coord, int]]:
-        """2 つの通路セルが共有する壁を、1 枚につき 1 回ずつ返す。
+        """通路セルが共有する壁を、1 枚につき 1 回ずつ返す。
 
-        見るのは東と南の壁だけなので、2 つのセルの間の壁は、北側または
-        西側のセルからのみ報告される。
+        東と南の壁だけを見ることで、2 つのセルの間の壁を北側/西側の
+        セルからのみ報告し、重複を避けている。
         """
         for x, y in self._region:
             for direction in (EAST, SOUTH):
@@ -616,19 +426,16 @@ class MazeGenerator:
             parent[left] = right
             self._carve(x, y, direction)
 
-    # ------------------------------------------------------------------
-    # Braiding (Pac-Man mode)
-    # ------------------------------------------------------------------
-    def _braid(self) -> None:
-        """壁を追加で開けて行き止まりをなくす。
+    # -- 編み込み (Pac-Man モード) --
 
-        壁を開けるのは 3x3 の完全な開放区画ができない場合だけなので、
-        通路の幅が 2 セルを超えることはない。
+    def _braid(self) -> None:
+        """行き止まりがなくなるまで壁を開ける。
+
+        3x3 の完全な開放区画ができてしまう場合は開けないので、通路の幅
+        が 2 セルを超えることはない。
         """
         while True:
-            ends = [
-                cell for cell in self._region if self.degree(*cell) <= 1
-            ]
+            ends = [cell for cell in self._region if self.degree(*cell) <= 1]
             if not ends:
                 return
             self._rng.shuffle(ends)
@@ -640,16 +447,14 @@ class MazeGenerator:
                 if not options:
                     continue
                 self._rng.shuffle(options)
-                options.sort(
-                    key=lambda d: self.degree(*self._step(x, y, d))
-                )
+                options.sort(key=lambda d: self.degree(*self._step(x, y, d)))
                 self._carve(x, y, options[0])
                 progress = True
             if not progress:
                 return
 
     def _openable_walls(self, x: int, y: int) -> List[int]:
-        """``(x, y)`` の壁のうち、安全に開けられるものを列挙する。"""
+        """(x, y) の壁のうち、安全に開けられるものを列挙する。"""
         options: List[int] = []
         for direction in _DIRECTIONS:
             if not self.grid[y][x] & direction:
@@ -662,7 +467,7 @@ class MazeGenerator:
         return options
 
     def _add_loops(self, target: int) -> None:
-        """迷路のループが ``target`` 個になるまで壁を開けていく。"""
+        """迷路のループが target 個になるまで壁を開けていく。"""
         loops = self.loop_count()
         if loops >= target:
             return
@@ -682,31 +487,30 @@ class MazeGenerator:
             self._carve(x, y, direction)
             loops += 1
 
-    # ------------------------------------------------------------------
-    # Low level wall helpers
-    # ------------------------------------------------------------------
+    # -- 壁を扱う下位レベルのヘルパー --
+
     def _in_bounds(self, x: int, y: int) -> bool:
-        """``(x, y)`` が格子に含まれるかどうかを返す。"""
+        """(x, y) が格子に含まれるかどうかを返す。"""
         return 0 <= x < self.width and 0 <= y < self.height
 
     def _is_corridor(self, x: int, y: int) -> bool:
-        """``(x, y)`` が迷路を掘り進めてよいセルかどうかを返す。"""
+        """(x, y) が迷路を掘り進めてよいセルかどうかを返す。"""
         return self._in_bounds(x, y) and (x, y) not in self.pattern_cells
 
     @staticmethod
     def _step(x: int, y: int, direction: int) -> Coord:
-        """``(x, y)`` の ``direction`` 側の隣のセルを返す。"""
+        """(x, y) の direction 側の隣のセルを返す。"""
         delta_x, delta_y = _DELTA[direction]
         return x + delta_x, y + delta_y
 
     def _carve(self, x: int, y: int, direction: int) -> None:
-        """``(x, y)`` と隣のセルの間の壁を開ける。"""
+        """(x, y) と隣のセルの間の壁を開ける。"""
         other_x, other_y = self._step(x, y, direction)
         self.grid[y][x] &= ~direction
         self.grid[other_y][other_x] &= ~_OPPOSITE[direction]
 
     def _close(self, x: int, y: int, direction: int) -> None:
-        """``(x, y)`` と隣のセルの間の壁を閉じる。"""
+        """(x, y) と隣のセルの間の壁を閉じる。"""
         other_x, other_y = self._step(x, y, direction)
         self.grid[y][x] |= direction
         self.grid[other_y][other_x] |= _OPPOSITE[direction]
@@ -733,20 +537,8 @@ class MazeGenerator:
                     return True
         return False
 
-    def is_block_open(
-        self, x: int, y: int, width: int, height: int
-    ) -> bool:
-        """長方形の領域に内側の壁が 1 枚も残っていないかを返す。
-
-        Args:
-            x: 長方形の左端の列。
-            y: 長方形の上端の行。
-            width: 長方形の幅（セル数）。
-            height: 長方形の高さ（セル数）。
-
-        Returns:
-            長方形の内側の壁がすべて開いていれば ``True``。
-        """
+    def is_block_open(self, x: int, y: int, width: int, height: int) -> bool:
+        """(x, y) を左上とする width x height の区画に、内側の壁が 1 枚も残っていないかを返す。"""
         if x + width > self.width or y + height > self.height:
             return False
         for row in range(y, y + height):
@@ -758,19 +550,18 @@ class MazeGenerator:
                     return False
         return True
 
-    # ------------------------------------------------------------------
-    # Public inspection helpers
-    # ------------------------------------------------------------------
+    # -- 公開の検査用ヘルパー --
+
     def walls_at(self, x: int, y: int) -> int:
-        """セル ``(x, y)`` の閉じた壁のビットマスクを返す。"""
+        """セル (x, y) の閉じた壁のビットマスクを返す。"""
         return self.grid[y][x]
 
     def is_open(self, x: int, y: int, direction: int) -> bool:
-        """``(x, y)`` の ``direction`` 側の壁が開いているかを返す。"""
+        """(x, y) の direction 側の壁が開いているかを返す。"""
         return not self.grid[y][x] & direction
 
     def open_neighbours(self, x: int, y: int) -> Iterator[Coord]:
-        """``(x, y)`` から 1 歩で行けるセルを順に返す。"""
+        """(x, y) から 1 歩で行けるセルを順に返す。"""
         for direction in _DIRECTIONS:
             if self.grid[y][x] & direction:
                 continue
@@ -779,10 +570,8 @@ class MazeGenerator:
                 yield neighbour
 
     def degree(self, x: int, y: int) -> int:
-        """``(x, y)`` の壁のうち、開いているものの数を返す。"""
-        return sum(
-            1 for direction in _DIRECTIONS if not self.grid[y][x] & direction
-        )
+        """(x, y) の壁のうち、開いているものの数を返す。"""
+        return sum(1 for direction in _DIRECTIONS if not self.grid[y][x] & direction)
 
     def dead_ends(self) -> List[Coord]:
         """開いた壁が 1 枚しかない通路セルを返す。"""
@@ -798,7 +587,7 @@ class MazeGenerator:
         return edges - len(self._region) + self._component_count()
 
     def _reachable_from(self, start: Coord) -> Set[Coord]:
-        """開いた壁をたどって ``start`` とつながるセルをすべて返す。"""
+        """開いた壁をたどって start とつながるセルをすべて返す。"""
         seen: Set[Coord] = {start}
         queue: deque[Coord] = deque([start])
         while queue:
@@ -824,16 +613,7 @@ class MazeGenerator:
         start: Optional[Coord] = None,
         goal: Optional[Coord] = None,
     ) -> List[Coord]:
-        """2 つのセルの間の最短経路を返す。
-
-        Args:
-            start: 始点のセル。既定では迷路の入口。
-            goal: 終点のセル。既定では迷路の出口。
-
-        Returns:
-            ``start`` から ``goal`` までのセルの並び。つながっていない
-            場合は空リスト。
-        """
+        """start から goal までの最短経路を返す（省略時は入口→出口、つながっていなければ空リスト）。"""
         source = self.entry if start is None else start
         target = self.exit if goal is None else goal
         if not self.grid:
@@ -861,17 +641,7 @@ class MazeGenerator:
 
     @staticmethod
     def path_to_directions(path: Sequence[Coord]) -> str:
-        """セルの並びを ``N`` / ``E`` / ``S`` / ``W`` に変換する。
-
-        Args:
-            path: 訪れた順に並んだセル。
-
-        Returns:
-            1 手につき 1 文字。セル 1 つだけの経路なら空文字列。
-
-        Raises:
-            MazeError: 連続する 2 つのセルが隣接していない場合。
-        """
+        """隣接するセルの並びを N/E/S/W の文字列に変換する。"""
         letters: List[str] = []
         for (from_x, from_y), (to_x, to_y) in zip(path, path[1:]):
             step = (to_x - from_x, to_y - from_y)
@@ -890,15 +660,10 @@ class MazeGenerator:
         """迷路を 1 セル 16 進数 1 桁の形で、行ごとに返す。"""
         return ["".join(f"{cell:x}" for cell in row) for row in self.grid]
 
-    # ------------------------------------------------------------------
-    # Self validation
-    # ------------------------------------------------------------------
-    def check(self) -> List[str]:
-        """生成した迷路がプロジェクトの要件を満たすか検証する。
+    # -- 自己検証 --
 
-        Returns:
-            人が読める形の問題点の一覧。迷路が正しければ空リスト。
-        """
+    def check(self) -> List[str]:
+        """生成した迷路が要件を満たしているか検証し、問題点のリストを返す（正しければ空）。"""
         problems: List[str] = []
         problems.extend(self._check_borders())
         problems.extend(self._check_coherence())
