@@ -28,8 +28,8 @@ In both modes a large **“42”** is drawn inside the maze with fully closed
 cells, and the shortest path from the entry to the exit is computed and
 exported.
 
-The generation logic itself lives in a single standalone module,
-[`mazegen.py`](mazegen.py), packaged as `mazegen-1.0.0-py3-none-any.whl` so
+The generation logic itself lives in a single standalone package,
+[`mazegen/`](mazegen/), packaged as `mazegen-1.0.0-py3-none-any.whl` so
 that a later project (a Pac-Man like game, for instance) can simply
 `pip install` it.
 
@@ -309,8 +309,8 @@ graded" — but `make test` runs it whenever a `tests/` directory is present.
 
 ## What is reusable, and how
 
-Everything needed to generate mazes lives in **one standalone module**,
-[`mazegen.py`](mazegen.py), which has **no dependency** outside the standard
+Everything needed to generate mazes lives in **one standalone package**,
+[`mazegen/`](mazegen/), which has **no dependency** outside the standard
 library and knows nothing about configuration files, terminals or colours.
 It is published as a pip package at the root of this repository:
 
@@ -473,7 +473,17 @@ unnoticed.
 ```
 .
 ├── a_maze_ing.py                     # main program (entry point)
-├── mazegen.py                        # reusable module: MazeGenerator
+├── mazegen/                          # reusable package: MazeGenerator
+│   ├── __init__.py                   # public API and module docstring
+│   ├── constants.py                  # wall bits, directions, size limits
+│   ├── errors.py                     # MazeError
+│   ├── glyphs.py                     # bitmap glyphs for the "42" pattern
+│   ├── base.py                       # MazeBase: shared state and grid ops
+│   ├── pattern.py                    # PatternMixin: pattern placement
+│   ├── analysis.py                   # AnalysisMixin: solving and stats
+│   ├── carving.py                    # CarvingMixin: spanning tree, braiding
+│   ├── verify.py                     # VerifyMixin: self-verification
+│   └── generator.py                  # MazeGenerator assembly
 ├── mazegen-1.0.0-py3-none-any.whl    # built pip package
 ├── amazeing/
 │   ├── config.py                     # KEY=VALUE parsing and validation
@@ -523,7 +533,7 @@ that come *with* the subject rather than from us: `maze_analyzer.py` and
 
 ### What worked well, what could be improved
 
-* **Worked well:** keeping `mazegen.py` completely independent from the
+* **Worked well:** keeping `mazegen` completely independent from the
   application layer from day one — it made the package trivial to build,
   and the module easy to test in isolation.
 * **Worked well:** writing `check()` early. Every requirement of the subject

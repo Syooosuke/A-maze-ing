@@ -21,7 +21,7 @@ classifiers = [
 Homepage = "https://github.com/42/a-maze-ing"
 
 [tool.setuptools]
-py-modules = ["mazegen"]
+packages = ["mazegen"]
 
 [tool.mypy]
 python_version = "3.10"
