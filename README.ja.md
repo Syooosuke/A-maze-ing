@@ -25,8 +25,8 @@
 どちらのモードでも、完全に閉じたセルを使って大きな **「42」** を迷路の
 中に描き、入口から出口への最短経路を計算して出力します。
 
-生成ロジックそのものは独立した 1 つのモジュール
-[`mazegen.py`](mazegen.py) にまとまっており、
+生成ロジックそのものは独立した 1 つのパッケージ
+[`mazegen/`](mazegen/) にまとまっており、
 `mazegen-1.0.0-py3-none-any.whl` としてパッケージ化されています。後続の
 プロジェクト（たとえば Pac-Man 風のゲーム）は `pip install` するだけで
 再利用できます。
@@ -308,10 +308,15 @@ Verdict: PERFECT maze: a single path, no loop -> matches PERFECT=True
 
 ## 何がどう再利用できるか
 
-迷路生成に必要なものはすべて、**独立した 1 つのモジュール**
-[`mazegen.py`](mazegen.py) に入っています。標準ライブラリ以外への
+迷路生成に必要なものはすべて、**独立した 1 つのパッケージ**
+[`mazegen/`](mazegen/) に入っています。標準ライブラリ以外への
 **依存はなく**、設定ファイルや端末や色のことは何も知りません。これは
 リポジトリ直下で pip パッケージとして公開しています。
+
+パッケージの中は層で分かれています。`MazeBase` が共有する状態と格子の
+操作を持ち、`PatternMixin` / `AnalysisMixin` / `CarvingMixin` /
+`VerifyMixin` がその上に積み上がり、`MazeGenerator` がそれらを束ねます。
+外から見える API は分割前と変わりません。
 
 * `mazegen-1.0.0-py3-none-any.whl`
 
@@ -472,7 +477,17 @@ AI をブラックボックスとして使うことは **しませんでした**
 ```
 .
 ├── a_maze_ing.py                     # メインプログラム（エントリポイント）
-├── mazegen.py                        # 再利用モジュール: MazeGenerator
+├── mazegen/                          # 再利用パッケージ: MazeGenerator
+│   ├── __init__.py                   # 公開 API とモジュール docstring
+│   ├── constants.py                  # 壁ビット、向き、大きさの上限
+│   ├── errors.py                     # MazeError
+│   ├── glyphs.py                     # "42" のビットマップ字形
+│   ├── base.py                       # MazeBase: 共有状態と格子操作
+│   ├── pattern.py                    # PatternMixin: パターンの配置
+│   ├── analysis.py                   # AnalysisMixin: 経路探索と統計
+│   ├── carving.py                    # CarvingMixin: 全域木と編み込み
+│   ├── verify.py                     # VerifyMixin: 自己検証
+│   └── generator.py                  # MazeGenerator の組み立て
 ├── mazegen-1.0.0-py3-none-any.whl    # ビルド済み pip パッケージ
 ├── amazeing/
 │   ├── config.py                     # KEY=VALUE の解析と検証
@@ -522,7 +537,7 @@ flake8 の除外設定は `Makefile` の中に置いてあるので、この一�
 
 ### うまくいったこと、改善できること
 
-* **うまくいった:** 初日から `mazegen.py` をアプリケーション層から完全に
+* **うまくいった:** 初日から `mazegen` をアプリケーション層から完全に
   独立させたこと。おかげでパッケージのビルドは造作もなく、モジュール単体
   でのテストも簡単になりました。
 * **うまくいった:** `check()` を早い段階で書いたこと。subject のすべての
