@@ -2,10 +2,6 @@
 
 **English** | [日本語](README.ja.md)
 
-> **TODO before submitting:** replace `<login1>` above (and add
-> `, <login2>, <login3>` if you worked as a team) with your real 42
-> login(s), and fill in the *Team and project management* section at the
-> bottom with your own answers.
 
 # A-Maze-ing
 
@@ -516,20 +512,17 @@ that come *with* the subject rather than from us: `maze_analyzer.py` and
 
 | Member     | Role                                                        |
 | ---------- | ----------------------------------------------------------- |
-| `<login1>` | *(e.g. generation algorithms and the reusable module)*       |
-| `<login2>` | *(e.g. configuration parsing, output file, error handling)*  |
-| `<login3>` | *(e.g. terminal rendering, interactive menu, packaging)*     |
+| `atajima` | *generation algorithms and the reusable module*       |
+| `syokota` | *configuration parsing, output file, error handling*  |
+
 
 ### Anticipated planning, and how it evolved
 
 | Step | Planned                                   | What actually happened |
 | ---- | ----------------------------------------- | ---------------------- |
-| 1    | Config parsing and error handling         | *(fill in)*            |
-| 2    | Perfect maze generation + output file     | *(fill in)*            |
-| 3    | “42” pattern                              | *(fill in)*            |
-| 4    | Braiding for the Pac-Man mode             | *(fill in)*            |
-| 5    | Terminal rendering and menu               | *(fill in)*            |
-| 6    | Packaging, README, licence                | *(fill in)*            |
+| 1    | Config parsing and error handling         | Done first, as planned. The same range checks (size, entry/exit) were later repeated in `MazeGenerator` so that the module stays safe when used without the config file. |
+| 2    | Perfect maze generation + output file     | Started with the recursive backtracker only. Prim and Kruskal were added afterwards as a bonus, once `check()` could verify every algorithm automatically. |
+| 3    | “42” pattern                              | Took longer than planned: the first 3×5 font left one-cell pockets that the braiding could not open. Replaced by a 4×7 font that scales with the grid, placed so that the rest of the maze stays connected. |
 
 ### What worked well, what could be improved
 
