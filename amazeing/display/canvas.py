@@ -80,7 +80,7 @@ class Canvas:
                         break
 
     def paint_pattern(self) -> None:
-        """"42" のセルを、壁と角のマスも含めた 3x3 ごと PATTERN で塗る。"""
+        """「42」 のセルを、壁と角のマスも含めた 3x3 ごと PATTERN で塗る。"""
         for x, y in self.generator.pattern_cells:
             for row in range(2 * y, 2 * y + 3):
                 for col in range(2 * x, 2 * x + 3):
@@ -91,7 +91,8 @@ class Canvas:
         for x, y in path:
             self.cells[2 * y + 1][2 * x + 1] = Token.PATH
         for (from_x, from_y), (to_x, to_y) in zip(path, path[1:]):
-            # 隣り合う 2 つの中心の、ちょうど真ん中のマス。
+            # 隣り合う 2 つの中心の、ちょうど真ん中のマス
+            # （行は 2y+1 と 2y'+1 の平均で y+y'+1。列も同じ）。
             self.cells[from_y + to_y + 1][from_x + to_x + 1] = Token.PATH
 
     def paint_endpoints(self) -> None:

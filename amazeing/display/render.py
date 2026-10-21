@@ -19,9 +19,10 @@ ASCII: Dict[Token, str] = {
     Token.EXIT: "XX",
 }
 
-# 色を使うときは、空白以外のマスをこのブロック文字で色付けして描く。
-BLOCK = "██"
-RESET = "\x1b[0m"
+# 色を使うときは、空白・入口・出口以外のマスをこのブロック文字で
+# 色付けして描く。
+BLOCK: str = "██"
+RESET: str = "\x1b[0m"
 
 
 def can_draw_blocks(encoding: Optional[str]) -> bool:
@@ -54,6 +55,9 @@ def swatch(token: Token, theme: Theme, colour: bool, count: int = 1) -> str:
     if not colour or token is Token.VOID:
         return ASCII[token] * count
     code = colour_of(token, theme)
+    if token in (Token.ENTRY, Token.EXIT):
+        # 入口と出口は、色だけでなく文字（EE / XX）でも見分けられるようにする。
+        return f"\x1b[1;38;5;{code}m{ASCII[token] * count}{RESET}"
     # \x1b[38;5;<番号>m は、文字色を 256 色の <番号> にする ANSI コード。
     return f"\x1b[38;5;{code}m{BLOCK * count}{RESET}"
 

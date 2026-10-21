@@ -28,7 +28,7 @@ from amazeing.display.session import Session, report_problems
 from amazeing.output import OutputError, write_maze
 from mazegen import MazeError, MazeGenerator
 
-USAGE = "Usage: python3 a_maze_ing.py <config file>"
+USAGE: str = "Usage: python3 a_maze_ing.py <config file>"
 
 
 def main(argv: Optional[List[str]] = None) -> int:
@@ -105,12 +105,14 @@ def _silence_output() -> None:
     の警告を出して終了ステータス 120 で終わる。/dev/null に向け直して防ぐ。
     """
     devnull = os.open(os.devnull, os.O_WRONLY)
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            os.dup2(devnull, stream.fileno())
-        except (AttributeError, OSError, ValueError):
-            pass  # 閉じられている（None）か、本物のファイルではない
-    os.close(devnull)
+    try:
+        for stream in (sys.stdout, sys.stderr):
+            try:
+                os.dup2(devnull, stream.fileno())
+            except (AttributeError, OSError, ValueError):
+                pass  # 閉じられている（None）か、本物のファイルではない
+    finally:
+        os.close(devnull)
 
 
 if __name__ == "__main__":

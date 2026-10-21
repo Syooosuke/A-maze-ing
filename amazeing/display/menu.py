@@ -2,18 +2,19 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, Tuple
 
 from amazeing.display.session import Session
 
-MENU = (
+MENU: Tuple[str, ...] = (
     "1. Re-generate a new maze",
     "2. Show / Hide the shortest path",
     "3. Rotate the wall colours",
     "4. Quit",
 )
-# 終了の番号はメニューの最後の項目。項目を足しても自動でずれる。
-QUIT_WORDS = (str(len(MENU)), "q", "quit")
+# Quit は必ずメニューの最後に置く。終了の番号は項目の数から決まる
+# （表示の "N. Quit" の番号は、項目を足したら手で付け直す）。
+QUIT_WORDS: Tuple[str, ...] = (str(len(MENU)), "q", "quit")
 
 
 def show(session: Session) -> None:

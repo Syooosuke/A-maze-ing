@@ -1,4 +1,4 @@
-""""42" のパターンを、迷路のどこに置くかを決める。"""
+"""「42」 のパターンを、迷路のどこに置くかを決める。"""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from ..constants import DELTA, Coord
 from .glyphs import PATTERN_HEIGHT, PATTERN_WIDTH, pattern_shape
 
 # 中央に置けなかったときに試す、ランダムな位置の数。
-RANDOM_ATTEMPTS = 25
+RANDOM_ATTEMPTS: int = 25
 
 
 def landmarks(width: int, height: int) -> Dict[str, Coord]:
@@ -31,7 +31,7 @@ def landmarks(width: int, height: int) -> Dict[str, Coord]:
 def place_pattern(
     width: int, height: int, reserved: Set[Coord], rng: random.Random
 ) -> Tuple[Set[Coord], Optional[str]]:
-    """"42" のパターンを置くセルを決める。
+    """「42」 のパターンを置くセルを決める。
 
     外周から 1 セル空けて置き、reserved（入口、出口、四隅、中央）は
     パターンで塞がない。
@@ -39,7 +39,9 @@ def place_pattern(
     Returns:
         (パターンのセル, None)。置けなかったときは (空集合, 理由)。
     """
-    # 外周に 1 セルずつ余白を残すので、"42" の大きさ + 2 が必要。
+    # "42" と外周の壁の間には必ず 1 セルの通路を残す。外周に接すると、
+    # 閉じたセルが外周の壁と見分けにくくなり、"42" として読みにくいため。
+    # そのぶん、"42" の大きさ + 2 が必要になる。
     needed_width, needed_height = PATTERN_WIDTH + 2, PATTERN_HEIGHT + 2
     if width < needed_width or height < needed_height:
         return set(), (
@@ -60,7 +62,7 @@ def place_pattern(
 def _find_position(
     width: int, height: int, reserved: Set[Coord], rng: random.Random
 ) -> Optional[Set[Coord]]:
-    """"42" を置ける位置を探し、置いたときのセルを返す。
+    """「42」 を置ける位置を探し、置いたときのセルを返す。
 
     reserved のセルは塞がず、置いた後も残りのセルがすべてつながって
     いる必要がある。まず中央を試し、だめならランダムな位置をいくつか
@@ -73,6 +75,7 @@ def _find_position(
     # "42" の左上の角を置ける範囲。外周から 1 セル空ける。
     max_left = width - PATTERN_WIDTH - 1
     max_top = height - PATTERN_HEIGHT - 1
+    # "42" を真ん中に置くときの左上の角（予約された中央のセルとは別物）。
     centre = ((width - PATTERN_WIDTH) // 2, (height - PATTERN_HEIGHT) // 2)
     # 乱数は先にまとめて引いておく。どこで見つかっても、乱数の消費量が
     # 同じになり、後に続く迷路の生成が安定する。

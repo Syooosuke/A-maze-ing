@@ -79,7 +79,7 @@ class Session:
 
 
 def report_problems(generator: MazeGenerator) -> None:
-    """"42" を描けなかった理由と、要件を満たしていない点を表示する。
+    """「42」 を描けなかった理由と、要件を満たしていない点を表示する。
 
     起動時と、メニューで迷路を作り直したときの両方から呼ばれる。
     """

@@ -2,8 +2,30 @@
 
 from __future__ import annotations
 
+from typing import Optional
+
 from .constants import MAX_SIZE, MIN_LOOPS, MIN_SIZE, Coord
 from .errors import MazeError
+
+
+def check_types(
+    width: int, height: int, entry: Coord, exit: Optional[Coord]
+) -> None:
+    """引数の型が違えば MazeError を送出する（"20" や [0, 0] など）。
+
+    型の誤りも、ほかの誤りと同じ MazeError で知らせるため。exit は省略
+    （None）してよい。
+    """
+    if not _is_int(width) or not _is_int(height):
+        raise MazeError("width and height must be integers")
+    for label, cell in (("ENTRY", entry), ("EXIT", exit)):
+        if label == "EXIT" and cell is None:
+            continue
+        if not (
+            isinstance(cell, tuple) and len(cell) == 2
+            and _is_int(cell[0]) and _is_int(cell[1])
+        ):
+            raise MazeError(f"{label} must be a pair of integers (x, y)")
 
 
 def check_arguments(
@@ -32,3 +54,8 @@ def check_arguments(
             "a 2x2 maze is too small for a playable board "
             f"(PERFECT=False needs at least {MIN_LOOPS} independent loops)"
         )
+
+
+def _is_int(value: object) -> bool:
+    """value が整数かを返す。True / False は整数として扱わない。"""
+    return isinstance(value, int) and not isinstance(value, bool)

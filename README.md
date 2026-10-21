@@ -104,10 +104,10 @@ crashes on a bad input.
 
 | Key           | Description                                | Example                 |
 | ------------- | ------------------------------------------ | ----------------------- |
-| `WIDTH`       | Maze width, in cells (>= 2)                | `WIDTH=25`              |
-| `HEIGHT`      | Maze height, in cells (>= 2)               | `HEIGHT=17`             |
+| `WIDTH`       | Maze width, in cells (>= 2)                | `WIDTH=19`              |
+| `HEIGHT`      | Maze height, in cells (>= 2)               | `HEIGHT=11`             |
 | `ENTRY`       | Entry coordinates `x,y`                    | `ENTRY=0,0`             |
-| `EXIT`        | Exit coordinates `x,y`, different from entry | `EXIT=24,16`          |
+| `EXIT`        | Exit coordinates `x,y`, different from entry | `EXIT=18,10`          |
 | `OUTPUT_FILE` | File receiving the generated maze          | `OUTPUT_FILE=maze.txt`  |
 | `PERFECT`     | `True` for a perfect maze, `False` for a playable board | `PERFECT=False` |
 
@@ -124,10 +124,10 @@ hold only one loop, while a playable board needs two.
 The default file is [`config.txt`](config.txt):
 
 ```ini
-WIDTH=25
-HEIGHT=17
+WIDTH=19
+HEIGHT=11
 ENTRY=0,0
-EXIT=24,16
+EXIT=18,10
 OUTPUT_FILE=maze.txt
 PERFECT=False
 SEED=42
@@ -154,14 +154,14 @@ coordinates, the exit coordinates, and the shortest path written with the
 letters `N`, `E`, `S`, `W`. Every line ends with `\n`.
 
 ```
-9515153955155555513911513
-A945692C3943955156AAAC3AA
+9139395539113915553
+AC46C439406C46A9552
 ...
-C6C456C56C6C55545556C5456
+C546C5556C6C5545556
 
 0,0
-24,16
-SSSSEESSEEEEESSWWSSENEESSENESSESENESENEESSSWSEEEENESEEEE
+18,10
+EESENESENEEESENEEESENESSEEESSESSSSWSES
 ```
 
 Neighbouring cells always agree on the wall they share: walls are only ever
@@ -184,9 +184,12 @@ The generation runs in four stages:
    cells in all), never touching the border, never covering the entry, the
    exit, a corner or the centre. The chosen placement must leave every
    remaining cell connected. Those cells stay at `F`, fully closed, and the
-   maze is simply carved *around* them. If the maze is too small to hold the pattern (less than
-   11×9 cells), or if the entry and the exit leave no room for it, it is
-   skipped and an error message is printed on the console.
+   maze is simply carved *around* them. A one-cell corridor is always kept
+   between the “42” and the outer wall, so that the pattern never merges
+   with the border and stays readable: the maze therefore needs at least
+   11×9 cells to hold it. If it is smaller, or if the entry and the exit
+   leave no room for it, the pattern is skipped and an error message is
+   printed on the console.
 2. **Carve a spanning tree** over every cell outside the pattern with the
    recursive backtracker. At this point the maze is perfect; when
    `PERFECT=True`, stage 3 is skipped. A tree has no loop, so it cannot
@@ -245,7 +248,7 @@ Both modes get the verdict the subject asks for:
 ```
 # PERFECT=False
 Verdict: Pac-Man-USABLE: fully connected, corners and centre reachable,
-         41 independent routes; ...
+         21 independent routes; ...
 
 # PERFECT=True
 Verdict: PERFECT maze: a single path, no loop -> matches PERFECT=True ...
@@ -307,8 +310,9 @@ gen.generate()
 
 Any invalid value (a size out of range, an entry or exit outside the maze,
 entry equal to exit, a 2×2 playable board) raises `mazegen.MazeError` with
-an explicit message. `perfect` defaults to `False`, like the `PERFECT` flag
-of the subject.
+an explicit message, and so does a wrongly typed value (such as `"20"` or
+`[0, 0]`). `perfect` defaults to `False`, like the `PERFECT` flag of the
+subject ("If the PERFECT flag is not activated (the default)...").
 
 ### Access the generated structure and the solution
 

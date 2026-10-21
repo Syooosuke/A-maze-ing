@@ -13,7 +13,7 @@ from .grid import Grid
 from .generation import braiding
 from .generation.backtracker import carve_backtracker
 from .generation.pattern import landmarks, place_pattern
-from .validation import check_arguments
+from .validation import check_arguments, check_types
 
 
 class MazeGenerator:
@@ -39,8 +39,8 @@ class MazeGenerator:
         Raises:
             MazeError: 条件では迷路を作れない場合。
         """
-        if exit is None:
-            exit = (width - 1, height - 1)
+        check_types(width, height, entry, exit)
+        exit = (width - 1, height - 1) if exit is None else exit
         check_arguments(width, height, entry, exit, perfect)
         self.width = width
         self.height = height
@@ -70,8 +70,8 @@ class MazeGenerator:
                 使い、それも None ならランダムに選ぶ（seed_used に残る）。
 
         Raises:
-            MazeError: 入口から出口への経路ができなかった場合。"42" は残りの
-                セルがつながる位置にしか置かないので、通常は起きない。
+            MazeError: 入口から出口への経路ができなかった場合（"42" は残りの
+                セルがつながる位置にしか置かないので、構造上は起きない）。
         """
         if seed is None:
             seed = self.seed if self.seed is not None else random_seed()
@@ -95,9 +95,8 @@ class MazeGenerator:
         #    これで完全迷路（ループのない迷路）になる。
         carve_backtracker(self._grid, self._region, rng)
 
-        # 3. Pac-Man 盤なら、行き止まりをなくし、ループを MIN_LOOPS 個以上に
-        #    する。行き止まりをなくすだけでたいてい十分なループができる
-        #    （config.txt の 25x17・SEED=42 で 41 個）ので、add_loops は何もしないことが多い。
+        # 3. Pac-Man 盤なら、行き止まりをなくし、ループを MIN_LOOPS 個以上にする
+        #    （行き止まりをなくすだけで足りることが多く、add_loops は保険）。
         if not self.perfect:
             braiding.remove_dead_ends(self._grid, self._region, rng)
             braiding.add_loops(self._grid, self._region, rng, MIN_LOOPS)
