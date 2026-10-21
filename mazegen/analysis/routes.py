@@ -13,6 +13,9 @@ from ..grid import Grid, corridor_edges
 def solve(grid: Grid, start: Coord, goal: Coord) -> List[Coord]:
     """start から goal までの最短経路を、幅優先探索で求める。
 
+    どの 1 歩も長さが同じなので、start に近いセルから順に広げていく
+    幅優先探索では、最初に goal に届いた経路が最短になる。
+
     Returns:
         start から goal までのセルの並び（両端を含む）。
         つながっていなければ空のリスト。
@@ -90,7 +93,7 @@ def loop_count(grid: Grid, region: List[Coord]) -> int:
 
     通路をグラフ（セルが頂点、開いた壁が辺）とみなしたときの
     「辺の数 - 頂点の数 + 連結成分の数」。木（完全迷路）なら 0 になり、
-    壁を 1 枚開けるたびに 1 つ増える。
+    すでにつながっている 2 セルの間の壁を 1 枚開けるたびに 1 つ増える。
     """
     open_walls = sum(
         1 for cell, direction in corridor_edges(grid, region)

@@ -25,4 +25,4 @@ packages = ["mazegen", "mazegen.generation", "mazegen.analysis"]
 
 [tool.mypy]
 python_version = "3.10"
-exclude = ["build/", "\\.venv/"]
+exclude = ["build/", "\\.venv/", "venv/"]

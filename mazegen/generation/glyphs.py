@@ -1,4 +1,4 @@
-""""42" のパターンを描くためのビットマップ字形。"""
+"""「42」 のパターンを描くためのビットマップ字形。"""
 
 from __future__ import annotations
 
@@ -30,19 +30,21 @@ GLYPHS: Dict[str, Tuple[str, ...]] = {
     ),
 }
 
-GLYPH_WIDTH = 4
-GLYPH_HEIGHT = 7
+GLYPH_WIDTH: int = 4
+GLYPH_HEIGHT: int = 7
 # 文字と文字の間に空けるセル数。
-GLYPH_GAP = 1
+GLYPH_GAP: int = 1
 
-PATTERN_TEXT = "42"
+PATTERN_TEXT: str = "42"
 # "42" 全体の大きさ（セル数）。
-PATTERN_WIDTH = len(PATTERN_TEXT) * (GLYPH_WIDTH + GLYPH_GAP) - GLYPH_GAP
-PATTERN_HEIGHT = GLYPH_HEIGHT
+PATTERN_WIDTH: int = (
+    len(PATTERN_TEXT) * (GLYPH_WIDTH + GLYPH_GAP) - GLYPH_GAP
+)
+PATTERN_HEIGHT: int = GLYPH_HEIGHT
 
 
 def pattern_shape() -> Set[Coord]:
-    """"42" を描くセルを返す。座標は "42" の左上を (0, 0) とする相対座標。"""
+    """「42」 を描くセルを返す。座標は "42" の左上を (0, 0) とする相対座標。"""
     cells: Set[Coord] = set()
     for index, char in enumerate(PATTERN_TEXT):
         left = index * (GLYPH_WIDTH + GLYPH_GAP)

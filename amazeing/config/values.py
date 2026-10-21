@@ -37,7 +37,7 @@ def parse_bool(key: str, raw: str) -> bool:
 
 
 def parse_coord(key: str, raw: str) -> Tuple[int, int]:
-    """"x,y" を座標 (x, y) に変換する。負の座標は認めない。"""
+    """「x,y」 を座標 (x, y) に変換する。負の座標は認めない。"""
     parts = raw.split(",")
     if len(parts) != 2:
         raise ConfigError(f"{key}: {raw!r} is not a 'x,y' pair of coordinates")

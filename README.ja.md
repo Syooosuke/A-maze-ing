@@ -103,10 +103,10 @@ make help
 
 | キー          | 説明                                       | 例                      |
 | ------------- | ------------------------------------------ | ----------------------- |
-| `WIDTH`       | 迷路の幅（セル数、2 以上）                 | `WIDTH=25`              |
-| `HEIGHT`      | 迷路の高さ（セル数、2 以上）               | `HEIGHT=17`             |
+| `WIDTH`       | 迷路の幅（セル数、2 以上）                 | `WIDTH=19`              |
+| `HEIGHT`      | 迷路の高さ（セル数、2 以上）               | `HEIGHT=11`             |
 | `ENTRY`       | 入口の座標 `x,y`                           | `ENTRY=0,0`             |
-| `EXIT`        | 出口の座標 `x,y`（入口とは別のセル）       | `EXIT=24,16`            |
+| `EXIT`        | 出口の座標 `x,y`（入口とは別のセル）       | `EXIT=18,10`            |
 | `OUTPUT_FILE` | 生成した迷路を書き出すファイル             | `OUTPUT_FILE=maze.txt`  |
 | `PERFECT`     | 完全迷路なら `True`、遊べる盤なら `False`  | `PERFECT=False`         |
 
@@ -124,10 +124,10 @@ make help
 既定のファイルは [`config.txt`](config.txt) です。
 
 ```ini
-WIDTH=25
-HEIGHT=17
+WIDTH=19
+HEIGHT=11
 ENTRY=0,0
-EXIT=24,16
+EXIT=18,10
 OUTPUT_FILE=maze.txt
 PERFECT=False
 SEED=42
@@ -154,14 +154,14 @@ SEED=42
 `\n` で終わります。
 
 ```
-9515153955155555513911513
-A945692C3943955156AAAC3AA
+9139395539113915553
+AC46C439406C46A9552
 ...
-C6C456C56C6C55545556C5456
+C546C5556C6C5545556
 
 0,0
-24,16
-SSSSEESSEEEEESSWWSSENEESSENESSESENESENEESSSWSEEEENESEEEE
+18,10
+EESENESENEEESENEEESENESSEEESSESSSSWSES
 ```
 
 隣り合うセルは、共有する壁について常に一致します。壁の変更は必ず両側を
@@ -184,10 +184,11 @@ SSSSEESSEEEEESSWWSSENEESSENESSESENESENEESSSWSEEEENESEEEE
    （全体で 9×7 セル）、外周に触れず、入口・出口・四隅・中央を覆わない
    位置に置きます。選んだ配置は、残りのセルすべてが連結したままである
    ことを満たす必要があります。これらのセルは `F`（完全に閉じた状態）の
-   まま残り、迷路はその *周りを* 掘って
-   作られます。迷路が小さすぎてパターンが入らない場合（11×9 セル未満）や、
-   入口と出口のせいで置ける場所がない場合は描画を諦め、コンソールに
-   エラーメッセージを出します。
+   まま残り、迷路はその *周りを* 掘って作られます。「42」と外周の壁の
+   間には必ず 1 セルの通路を残し、パターンが外周に溶け込まず読めるように
+   しています。そのため、「42」を描くには 11×9 セル以上が必要です。
+   それより小さい場合や、入口と出口のせいで置ける場所がない場合は描画を
+   諦め、コンソールにエラーメッセージを出します。
 2. **全域木を掘る。** 再帰的バックトラッカーで、パターン以外のすべての
    セルに全域木を掘ります。この時点で迷路は完全迷路であり、
    `PERFECT=True` なら手順 3 は飛ばします。木にはループがないので、
@@ -246,7 +247,7 @@ python3 maze_analyzer.py maze.txt
 ```
 # PERFECT=False
 Verdict: Pac-Man-USABLE: fully connected, corners and centre reachable,
-         41 independent routes; ...
+         21 independent routes; ...
 
 # PERFECT=True
 Verdict: PERFECT maze: a single path, no loop -> matches PERFECT=True ...
@@ -315,8 +316,9 @@ gen.generate()
 
 不正な値（範囲外の大きさ、迷路の外にある入口や出口、同じ入口と出口、
 2×2 の遊べる盤）を渡すと、明示的なメッセージ付きで `mazegen.MazeError`
-が送出されます。`perfect` の既定値は、subject の `PERFECT` フラグと同じく
-`False` です。
+が送出されます。型の違う値（`"20"` や `[0, 0]` など）も同じです。
+`perfect` の既定値は、subject の `PERFECT` フラグと同じく `False` です
+（"If the PERFECT flag is not activated (the default)..."）。
 
 ### 生成された構造と解にアクセスする
 

@@ -80,7 +80,7 @@ def _check_shared_walls(grid: Grid) -> List[str]:
 
 
 def _check_pattern_closed(grid: Grid, pattern_cells: Set[Coord]) -> List[str]:
-    """"42" のセルが 4 枚の壁ですべて閉じているかを確かめる。"""
+    """「42」 のセルが 4 枚の壁ですべて閉じているかを確かめる。"""
     return [
         f"pattern cell {x},{y} is not fully closed"
         for x, y in sorted(pattern_cells)

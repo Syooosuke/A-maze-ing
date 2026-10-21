@@ -23,7 +23,8 @@ entry/exit（入口と出口の座標。既定値は左上と右下）、perfect
 generate() を呼んだ後は、grid（各セルの壁ビットマスク。NORTH=1,
 EAST=2, SOUTH=4, WEST=8）、solution（入口から出口への最短経路）、
 directions（同じ経路を N/E/S/W で表した文字列）、pattern_cells（描いた
-パターンのセル集合）、seed_used（実際に使ったシード）から結果を読める。
+パターンのセル集合）、pattern_warning（"42" を描けなかった理由。描けたら
+None）、seed_used（実際に使ったシード）から結果を読める。
 
 ライセンス: MIT -- LICENSE.md を参照。
 """
