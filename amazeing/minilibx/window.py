@@ -8,7 +8,7 @@ from __future__ import annotations
 import sys
 from typing import Any, Callable, List, Tuple
 
-from amazeing.mlx_setup import FOOTER_HEIGHT, MlxUnavailable
+from amazeing.minilibx.setup import FOOTER_HEIGHT, MlxUnavailable
 
 # ウィンドウの閉じるボタンを捕まえるための X11 のイベント番号とマスク。
 DESTROY_NOTIFY = 17

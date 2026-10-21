@@ -82,7 +82,9 @@ build:
 
 ## clean: remove caches and temporary files
 clean:
-	rm -rf __pycache__ */__pycache__ .mypy_cache .pytest_cache .mlx
+	find . -path ./.venv -prune -o -name __pycache__ -type d -prune \
+	    -exec rm -rf {} +
+	rm -rf .mypy_cache .pytest_cache .mlx
 	rm -rf build dist *.egg-info
 	find . -name '*.py[co]' -delete
 

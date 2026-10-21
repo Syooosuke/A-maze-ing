@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Dict, Set, Tuple
 
-from .constants import Coord
+from ..constants import Coord
 
 # 1 文字は横 4 x 縦 7 セル。"#" のセルが、完全に閉じたセルになる。
 # 字形の中の穴は必ず 2 セル以上の太さにしてある。1 セル幅の穴は編み込み

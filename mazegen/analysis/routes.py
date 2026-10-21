@@ -5,9 +5,9 @@ from __future__ import annotations
 from collections import deque
 from typing import Deque, Dict, List, Sequence, Set
 
-from .constants import DELTA, LETTER, Coord
-from .errors import MazeError
-from .grid import Grid, corridor_edges
+from ..constants import DELTA, LETTER, Coord
+from ..errors import MazeError
+from ..grid import Grid, corridor_edges
 
 
 def solve(grid: Grid, start: Coord, goal: Coord) -> List[Coord]:

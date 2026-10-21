@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typing import Dict
 
-from amazeing.canvas import Token
-from amazeing.render import colour_of
-from amazeing.themes import Theme
+from amazeing.display.canvas import Token
+from amazeing.display.render import colour_of
+from amazeing.display.themes import Theme
 
 # 迷路の通路（何もないマス）の色。
 BACKGROUND = 0x101014

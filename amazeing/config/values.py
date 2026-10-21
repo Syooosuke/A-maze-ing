@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import Tuple
 
-from amazeing.config_reader import ConfigError
+from amazeing.config.reader import ConfigError
 from mazegen import ALGORITHMS
 
 TRUE_WORDS = ("true", "yes", "on", "1")

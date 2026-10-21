@@ -310,8 +310,8 @@ Verdict: PERFECT maze: a single path, no loop -> matches PERFECT=True
 リポジトリ直下で pip パッケージとして公開しています。
 
 パッケージの中は役割ごとのモジュールに分かれています。`Grid` が
-セルと壁を持ち、`algorithms` / `braiding` / `pattern` / `analysis` /
-`verify` はそれを引数に受け取る関数です。`MazeGenerator.generate()` は
+セルと壁を持ち、`generation/`（作る）と `analysis/`（調べる）の中の
+モジュールは、それを引数に受け取る関数です。`MazeGenerator.generate()` は
 それらを上から順に呼ぶだけなので、生成の流れはこのメソッドを読めば
 追えます。
 
@@ -478,30 +478,35 @@ AI をブラックボックスとして使うことは **しませんでした**
 │   ├── reader.py                     # MazeReader: walls_at(), solve() など
 │   ├── validation.py                 # コンストラクタ引数の検証
 │   ├── grid.py                       # Grid: セルとその壁
-│   ├── pattern.py                    # "42" の置き場所
-│   ├── glyphs.py                     # "42" のビットマップ字形
-│   ├── algorithms.py                 # バックトラッカー、Prim、Kruskal
-│   ├── braiding.py                   # 行き止まりの除去とループの追加
-│   ├── analysis.py                   # 最短経路、ループ、行き止まり
-│   ├── verify.py                     # subject の要件の自己検証
 │   ├── constants.py                  # 壁ビット、向き、大きさの上限
-│   └── errors.py                     # MazeError
+│   ├── errors.py                     # MazeError
+│   ├── generation/                   # 迷路を作る
+│   │   ├── pattern.py                # "42" の置き場所
+│   │   ├── glyphs.py                 # "42" のビットマップ字形
+│   │   ├── algorithms.py             # バックトラッカー、Prim、Kruskal
+│   │   └── braiding.py               # 行き止まりの除去とループの追加
+│   └── analysis/                     # できた迷路を調べる
+│       ├── routes.py                 # 最短経路、ループ、行き止まり
+│       └── verify.py                 # subject の要件の自己検証
 ├── mazegen-1.0.0-py3-none-any.whl    # ビルド済み pip パッケージ
 ├── amazeing/                         # アプリケーション（パッケージ外）
-│   ├── config.py                     # load_config(): MazeConfig を作る
-│   ├── config_reader.py              # KEY=VALUE の行を読む
-│   ├── config_values.py              # 値の変換（整数、真偽値、x,y）
 │   ├── output.py                     # 出力ファイルの書き出し
-│   ├── canvas.py                     # 何をどこに描くか（色は持たない）
-│   ├── themes.py                     # 配色テーマ
-│   ├── render.py                     # キャンバス -> 端末の文字列
-│   ├── session.py                    # 表示中の迷路と表示設定
-│   ├── menu.py                       # 端末の対話メニュー
-│   ├── mlxview.py                    # 任意機能の MiniLibX ウィンドウ
-│   ├── mlx_window.py                 # MiniLibX のウィンドウと画像
-│   ├── mlx_setup.py                  # MiniLibX の可否、描画倍率
-│   ├── mlx_colours.py                # 配色 -> RGB
-│   └── mlx_keys.py                   # ウィンドウのキー操作
+│   ├── config/                       # 設定ファイル
+│   │   ├── settings.py               # load_config(): MazeConfig を作る
+│   │   ├── reader.py                 # KEY=VALUE の行を読む
+│   │   └── values.py                 # 値の変換（整数、真偽値、x,y）
+│   ├── display/                      # 端末への表示
+│   │   ├── canvas.py                 # 何をどこに描くか（色は持たない）
+│   │   ├── themes.py                 # 配色テーマ
+│   │   ├── render.py                 # キャンバス -> 端末の文字列
+│   │   ├── session.py                # 表示中の迷路と表示設定
+│   │   └── menu.py                   # 端末の対話メニュー
+│   └── minilibx/                     # 任意機能の MiniLibX ウィンドウ
+│       ├── viewer.py                 # MlxViewer: ウィンドウとキー操作
+│       ├── window.py                 # MiniLibX のウィンドウと画像
+│       ├── setup.py                  # MiniLibX の可否、描画倍率
+│       ├── colours.py                # 配色 -> RGB
+│       └── keys.py                   # ウィンドウのキー操作
 ├── config.txt                        # 既定の設定
 ├── pyproject.toml                    # パッケージのビルド設定
 ├── Makefile

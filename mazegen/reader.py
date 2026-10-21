@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Iterator, List, Optional
 
-from . import analysis
+from .analysis import routes
 from .constants import Coord
 from .grid import Grid
 
@@ -25,7 +25,7 @@ class MazeReader:
         self, start: Optional[Coord] = None, goal: Optional[Coord] = None
     ) -> List[Coord]:
         """start から goal までの最短経路を返す。省略時は入口から出口。"""
-        return analysis.solve(
+        return routes.solve(
             self._grid,
             self.entry if start is None else start,
             self.exit if goal is None else goal,
@@ -34,7 +34,7 @@ class MazeReader:
     @staticmethod
     def path_to_directions(path: List[Coord]) -> str:
         """セルの並びを "ESSW..." のような向きの文字列に変える。"""
-        return analysis.path_to_directions(path)
+        return routes.path_to_directions(path)
 
     def walls_at(self, x: int, y: int) -> int:
         """セル (x, y) の閉じた壁のビットマスクを返す。"""
@@ -58,11 +58,11 @@ class MazeReader:
 
     def dead_ends(self) -> List[Coord]:
         """行き止まり（開いた壁が 1 枚だけの通路セル）を返す。"""
-        return analysis.dead_ends(self._grid, self._region)
+        return routes.dead_ends(self._grid, self._region)
 
     def loop_count(self) -> int:
         """独立したループの数を返す。完全迷路なら 0。"""
-        return analysis.loop_count(self._grid, self._region)
+        return routes.loop_count(self._grid, self._region)
 
     def to_hex_lines(self) -> List[str]:
         """迷路を 1 セル 16 進数 1 桁で表した行のリストを返す。"""

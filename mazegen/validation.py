@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from .constants import ALGORITHMS, MAX_SIZE, MIN_SIZE, Coord
 from .errors import MazeError
-from .glyphs import GLYPHS
+from .generation.glyphs import GLYPHS
 
 
 def check_arguments(

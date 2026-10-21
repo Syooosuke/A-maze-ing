@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from typing import List, Set
 
-from .analysis import count_components, dead_ends, loop_count
-from .constants import ALL_WALLS, EAST, NORTH, OPPOSITE, SOUTH, WEST, Coord
-from .grid import Grid
-from .pattern import landmarks
+from .routes import count_components, dead_ends, loop_count
+from ..constants import ALL_WALLS, EAST, NORTH, OPPOSITE, SOUTH, WEST, Coord
+from ..grid import Grid
+from ..generation.pattern import landmarks
 
 
 def find_problems(

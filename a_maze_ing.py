@@ -9,8 +9,8 @@
     1. 設定ファイルを読む（amazeing.config）
     2. 迷路を生成する（mazegen.MazeGenerator）
     3. OUTPUT_FILE に書き出す（amazeing.output）
-    4. 表示する。DISPLAY=mlx ならウィンドウ（amazeing.mlxview）、
-       そうでなければ端末。標準入力が端末なら対話メニュー（amazeing.menu）
+    4. 表示する。DISPLAY=mlx ならウィンドウ（amazeing.minilibx）、そうで
+       なければ端末。標準入力が端末なら対話メニュー（amazeing.display）
 """
 
 from __future__ import annotations
@@ -20,10 +20,10 @@ import sys
 from typing import List, Optional
 
 from amazeing.config import ConfigError, MazeConfig, load_config
-from amazeing.menu import run, show
-from amazeing.mlxview import MlxUnavailable, show_in_window
+from amazeing.display.menu import run, show
+from amazeing.display.session import Session, report_problems
+from amazeing.minilibx.viewer import MlxUnavailable, show_in_window
 from amazeing.output import OutputError, write_maze
-from amazeing.session import Session, report_problems
 from mazegen import MazeError, MazeGenerator
 
 USAGE = "Usage: python3 a_maze_ing.py <config file>"

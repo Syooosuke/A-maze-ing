@@ -6,7 +6,7 @@ import random
 from collections import deque
 from typing import Deque, Dict, List, Optional, Set, Tuple
 
-from .constants import DELTA, Coord
+from ..constants import DELTA, Coord
 from .glyphs import GLYPH_HEIGHT, text_cells, text_width
 
 # パターンが格子のこれ以上の割合を占めるなら、もう一段小さく描く。

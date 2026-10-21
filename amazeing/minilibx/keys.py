@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from amazeing.session import Session
+from amazeing.display.session import Session
 
 # キーの X11 keysym。
 KEY_REGENERATE = 0x31  # '1'

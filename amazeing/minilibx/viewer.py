@@ -5,12 +5,12 @@ from __future__ import annotations
 import sys
 from typing import Any, Callable, List, Optional
 
-from amazeing import mlx_keys
-from amazeing.canvas import draw_maze
-from amazeing.mlx_colours import token_colours
-from amazeing.mlx_setup import MlxUnavailable, choose_scale, load_mlx
-from amazeing.mlx_window import MlxWindow
-from amazeing.session import Session
+from amazeing.minilibx import keys
+from amazeing.display.canvas import draw_maze
+from amazeing.minilibx.colours import token_colours
+from amazeing.minilibx.setup import MlxUnavailable, choose_scale, load_mlx
+from amazeing.minilibx.window import MlxWindow
+from amazeing.display.session import Session
 
 __all__ = ["MlxUnavailable", "MlxViewer", "show_in_window"]
 
@@ -76,7 +76,7 @@ class MlxViewer:
         """迷路と、その下のヘルプと要約を描き直す。"""
         self.window.show_rows(self.build_rows(), repeat=self.scale)
         bottom = self.window.image_height
-        self.window.write(8, bottom + 10, 0xFFFFFF, mlx_keys.HELP)
+        self.window.write(8, bottom + 10, 0xFFFFFF, keys.HELP)
         self.window.write(8, bottom + 22, 0x9AA0A6, self.session.status())
 
     def on_key(self, keycode: int, param: Any = None) -> None:
@@ -86,10 +86,10 @@ class MlxViewer:
         つぶされて原因が分からなくなる。すべて捕まえて表示する。
         """
         try:
-            action = mlx_keys.apply_key(self.session, keycode)
-            if action == mlx_keys.QUIT:
+            action = keys.apply_key(self.session, keycode)
+            if action == keys.QUIT:
                 self.close()
-            elif action == mlx_keys.REDRAW:
+            elif action == keys.REDRAW:
                 self.draw()
         except Exception as error:  # noqa: BLE001 - ウィンドウを生かしておく
             print(f"Error: {error}", file=sys.stderr)
@@ -106,7 +106,7 @@ class MlxViewer:
     def run(self) -> None:
         """ウィンドウを開いて迷路を描き、閉じられるまで待つ。"""
         self.open()
-        print(f"MiniLibX window -- {mlx_keys.HELP}")
+        print(f"MiniLibX window -- {keys.HELP}")
         self.draw()
         self.window.listen(self.on_key, self.on_close)
         self.running = True

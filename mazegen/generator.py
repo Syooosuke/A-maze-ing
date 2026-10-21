@@ -5,14 +5,15 @@ from __future__ import annotations
 import random
 from typing import List, Optional, Set
 
-from . import algorithms, analysis, braiding
+from .analysis import routes
+from .analysis.verify import find_problems
 from .constants import Coord, random_seed
 from .errors import MazeError
 from .grid import Grid
-from .pattern import landmarks, place_pattern
+from .generation import algorithms, braiding
+from .generation.pattern import landmarks, place_pattern
 from .reader import MazeReader
 from .validation import check_arguments
-from .verify import find_problems
 
 # ALGORITHM の名前から、全域木を掘る関数を引く表。
 CARVERS = {
@@ -110,7 +111,7 @@ class MazeGenerator(MazeReader):
         self.solution = self.solve()
         if not self.solution:
             raise MazeError("no path between the entry and the exit")
-        self.directions = analysis.path_to_directions(self.solution)
+        self.directions = routes.path_to_directions(self.solution)
         return self
 
     def check(self) -> List[str]:

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from amazeing.session import Session
+from amazeing.display.session import Session
 
 MENU = (
     "1. Re-generate a new maze",

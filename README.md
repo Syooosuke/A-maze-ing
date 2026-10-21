@@ -472,30 +472,35 @@ unnoticed.
 │   ├── reader.py                     # MazeReader: walls_at(), solve(), ...
 │   ├── validation.py                 # checks of the constructor arguments
 │   ├── grid.py                       # Grid: cells and their walls
-│   ├── pattern.py                    # where the "42" goes
-│   ├── glyphs.py                     # bitmap font of the "42"
-│   ├── algorithms.py                 # backtracker, Prim, Kruskal
-│   ├── braiding.py                   # dead-end removal, extra loops
-│   ├── analysis.py                   # shortest path, loops, dead-ends
-│   ├── verify.py                     # self-check against the subject
 │   ├── constants.py                  # wall bits, directions, size limits
-│   └── errors.py                     # MazeError
+│   ├── errors.py                     # MazeError
+│   ├── generation/                   # building the maze
+│   │   ├── pattern.py                # where the "42" goes
+│   │   ├── glyphs.py                 # bitmap font of the "42"
+│   │   ├── algorithms.py             # backtracker, Prim, Kruskal
+│   │   └── braiding.py               # dead-end removal, extra loops
+│   └── analysis/                     # inspecting the result
+│       ├── routes.py                 # shortest path, loops, dead-ends
+│       └── verify.py                 # self-check against the subject
 ├── mazegen-1.0.0-py3-none-any.whl    # built pip package
 ├── amazeing/                         # the application (not packaged)
-│   ├── config.py                     # load_config(): builds a MazeConfig
-│   ├── config_reader.py              # reads the KEY=VALUE lines
-│   ├── config_values.py              # converts the values (int, bool, x,y)
 │   ├── output.py                     # output file writing
-│   ├── canvas.py                     # what to draw where (no colours)
-│   ├── themes.py                     # colour themes
-│   ├── render.py                     # canvas -> terminal text
-│   ├── session.py                    # displayed maze and display options
-│   ├── menu.py                       # interactive terminal menu
-│   ├── mlxview.py                    # optional MiniLibX window
-│   ├── mlx_window.py                 # MiniLibX window and image
-│   ├── mlx_setup.py                  # is MiniLibX usable, window scale
-│   ├── mlx_colours.py                # theme colours -> RGB
-│   └── mlx_keys.py                   # keys of the window
+│   ├── config/                       # configuration file
+│   │   ├── settings.py               # load_config(): builds a MazeConfig
+│   │   ├── reader.py                 # reads the KEY=VALUE lines
+│   │   └── values.py                 # converts the values (int, bool, x,y)
+│   ├── display/                      # terminal display
+│   │   ├── canvas.py                 # what to draw where (no colours)
+│   │   ├── themes.py                 # colour themes
+│   │   ├── render.py                 # canvas -> terminal text
+│   │   ├── session.py                # displayed maze and display options
+│   │   └── menu.py                   # interactive terminal menu
+│   └── minilibx/                     # optional MiniLibX window
+│       ├── viewer.py                 # MlxViewer: window + keys
+│       ├── window.py                 # MiniLibX window and image
+│       ├── setup.py                  # is MiniLibX usable, window scale
+│       ├── colours.py                # theme colours -> RGB
+│       └── keys.py                   # keys of the window
 ├── config.txt                        # default configuration
 ├── pyproject.toml                    # package build configuration
 ├── Makefile

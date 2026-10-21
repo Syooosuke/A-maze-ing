@@ -5,8 +5,8 @@ from __future__ import annotations
 from itertools import groupby
 from typing import Dict, List
 
-from amazeing.canvas import Token, draw_maze
-from amazeing.themes import THEMES, Theme
+from amazeing.display.canvas import Token, draw_maze
+from amazeing.display.themes import THEMES, Theme
 from mazegen import MazeGenerator
 
 # 色を使わないときの描き方。1 マスを 2 文字で描くと、端末でほぼ正方形になる。

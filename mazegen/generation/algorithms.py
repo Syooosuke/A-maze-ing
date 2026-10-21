@@ -10,8 +10,8 @@ from __future__ import annotations
 import random
 from typing import Dict, List, Set, Tuple
 
-from .constants import DIRECTIONS, Coord
-from .grid import Grid, corridor_edges
+from ..constants import DIRECTIONS, Coord
+from ..grid import Grid, corridor_edges
 
 
 def carve_backtracker(

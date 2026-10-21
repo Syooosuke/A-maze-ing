@@ -5,9 +5,9 @@ from __future__ import annotations
 import random
 from typing import List, Set
 
-from .analysis import loop_count
-from .constants import DIRECTIONS, Coord
-from .grid import Grid, corridor_edges
+from ..analysis.routes import loop_count
+from ..constants import DIRECTIONS, Coord
+from ..grid import Grid, corridor_edges
 
 
 def remove_dead_ends(

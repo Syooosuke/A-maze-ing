@@ -1,6 +1,6 @@
 """設定ファイルを読み込み、検証済みの MazeConfig を作る。
 
-読み取りは config_reader、値の変換は config_values が受け持つ。
+読み取りは reader.py、値の変換は values.py が受け持つ。
 ここでは両者を組み合わせ、値どうしの矛盾がないかを確かめる。
 """
 
@@ -9,8 +9,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
-from amazeing.config_reader import MANDATORY_KEYS, ConfigError, read_pairs
-from amazeing.config_values import (
+from amazeing.config.reader import MANDATORY_KEYS, ConfigError, read_pairs
+from amazeing.config.values import (
     parse_algorithm,
     parse_bool,
     parse_coord,

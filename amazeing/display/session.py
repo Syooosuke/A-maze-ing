@@ -10,8 +10,8 @@ import sys
 
 from amazeing.config import MazeConfig
 from amazeing.output import OutputError, write_maze
-from amazeing.render import legend, render
-from amazeing.themes import THEMES, Theme
+from amazeing.display.render import legend, render
+from amazeing.display.themes import THEMES, Theme
 from mazegen import MazeError, MazeGenerator, random_seed
 
 
