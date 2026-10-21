@@ -300,10 +300,7 @@ Any invalid combination raises `mazegen.MazeError` with an explicit message.
 from mazegen import EAST, NORTH, SOUTH, WEST
 
 gen.grid              # List[List[int]], grid[y][x] = closed-wall bitmask
-gen.walls_at(3, 4)    # the same value, read through a method
-gen.is_open(3, 4, EAST)          # True when you can walk east
-list(gen.open_neighbours(3, 4))  # the cells reachable in one step
-gen.degree(3, 4)                 # how many walls are open
+gen.grid[4][3] & EAST # non-zero when cell (3, 4) has its east wall closed
 
 gen.pattern_cells     # Set[(x, y)] -- the fully closed "42" cells
 gen.pattern_warning   # why the "42" was skipped, or None
@@ -311,7 +308,6 @@ gen.seed_used         # replay this seed to rebuild the very same maze
 
 gen.solution          # [(0, 0), (1, 0), ...] shortest entry -> exit path
 gen.directions        # the same path as "ESSEEN..." letters
-gen.solve((3, 3), (7, 9))        # shortest path between any two cells
 
 gen.to_hex_lines()    # ['9155...', ...] one hex digit per cell
 gen.dead_ends()       # cells with a single open wall
@@ -391,7 +387,6 @@ unnoticed.
 ├── mazegen/                          # reusable package: MazeGenerator
 │   ├── __init__.py                   # public API and module docstring
 │   ├── generator.py                  # MazeGenerator: the generation steps
-│   ├── reader.py                     # MazeReader: walls_at(), solve(), ...
 │   ├── validation.py                 # checks of the constructor arguments
 │   ├── grid.py                       # Grid: cells and their walls
 │   ├── constants.py                  # wall bits, directions, size limits

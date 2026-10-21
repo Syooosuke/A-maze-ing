@@ -13,16 +13,14 @@ from .grid import Grid
 from .generation import braiding
 from .generation.backtracker import carve_backtracker
 from .generation.pattern import landmarks, place_pattern
-from .reader import MazeReader
 from .validation import check_arguments
 
 
-class MazeGenerator(MazeReader):
+class MazeGenerator:
     """長方形の迷路を作り、解く。
 
     使い方は MazeGenerator(...) で条件を決めて generate() を呼ぶだけ。
-    結果は grid, solution, directions, pattern_cells などの属性と、
-    MazeReader から受け継いだ walls_at() などのメソッドで読める。
+    結果は grid, solution, directions, pattern_cells などの属性で読める。
     """
 
     def __init__(
@@ -95,7 +93,7 @@ class MazeGenerator(MazeReader):
             braiding.add_loops(self._grid, self._region, rng, target=2)
 
         # 4. 入口から出口までの最短経路を求める。
-        self.solution = self.solve()
+        self.solution = routes.solve(self._grid, self.entry, self.exit)
         if not self.solution:
             raise MazeError("no path between the entry and the exit")
         self.directions = routes.path_to_directions(self.solution)
@@ -106,3 +104,15 @@ class MazeGenerator(MazeReader):
         return find_problems(
             self._grid, self._region, self.pattern_cells, self.perfect
         )
+
+    def dead_ends(self) -> List[Coord]:
+        """行き止まり（開いた壁が 1 枚だけの通路セル）を返す。"""
+        return routes.dead_ends(self._grid, self._region)
+
+    def loop_count(self) -> int:
+        """独立したループの数を返す。完全迷路なら 0。"""
+        return routes.loop_count(self._grid, self._region)
+
+    def to_hex_lines(self) -> List[str]:
+        """迷路を 1 セル 16 進数 1 桁で表した行のリストを返す。"""
+        return ["".join(f"{walls:x}" for walls in row) for row in self.grid]

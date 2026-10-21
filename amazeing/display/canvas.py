@@ -56,7 +56,7 @@ class Canvas:
         """各セルの閉じた壁を、壁のマスに描く。"""
         for y in range(self.generator.height):
             for x in range(self.generator.width):
-                walls = self.generator.walls_at(x, y)
+                walls = self.generator.grid[y][x]
                 for direction, (d_row, d_col) in WALL_OFFSETS.items():
                     if walls & direction:
                         self.cells[2 * y + 1 + d_row][2 * x + 1 + d_col] = (

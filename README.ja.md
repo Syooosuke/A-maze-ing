@@ -307,10 +307,7 @@ gen.generate()
 from mazegen import EAST, NORTH, SOUTH, WEST
 
 gen.grid              # List[List[int]]、grid[y][x] = 閉じた壁のビットマスク
-gen.walls_at(3, 4)    # 同じ値をメソッド経由で読む
-gen.is_open(3, 4, EAST)          # 東へ進めるなら True
-list(gen.open_neighbours(3, 4))  # 1 歩で行けるセル
-gen.degree(3, 4)                 # 開いている壁の枚数
+gen.grid[4][3] & EAST # セル (3, 4) の東の壁が閉じていれば 0 以外
 
 gen.pattern_cells     # Set[(x, y)] -- 完全に閉じた「42」のセル
 gen.pattern_warning   # 「42」を諦めた理由。描けていれば None
@@ -318,7 +315,6 @@ gen.seed_used         # このシードを使えば同じ迷路を再現でき�
 
 gen.solution          # [(0, 0), (1, 0), ...] 入口 -> 出口の最短経路
 gen.directions        # 同じ経路を "ESSEEN..." の文字で表したもの
-gen.solve((3, 3), (7, 9))        # 任意の 2 セル間の最短経路
 
 gen.to_hex_lines()    # ['9155...', ...] 1 セル 16 進数 1 桁
 gen.dead_ends()       # 開いた壁が 1 枚しかないセル
@@ -398,7 +394,6 @@ AI をブラックボックスとして使うことは **しませんでした**
 ├── mazegen/                          # 再利用パッケージ: MazeGenerator
 │   ├── __init__.py                   # 公開 API とモジュール docstring
 │   ├── generator.py                  # MazeGenerator: 生成の手順
-│   ├── reader.py                     # MazeReader: walls_at(), solve() など
 │   ├── validation.py                 # コンストラクタ引数の検証
 │   ├── grid.py                       # Grid: セルとその壁
 │   ├── constants.py                  # 壁ビット、向き、大きさの上限
