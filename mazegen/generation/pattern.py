@@ -7,7 +7,9 @@ from collections import deque
 from typing import Deque, Dict, List, Optional, Set, Tuple
 
 from ..constants import DELTA, Coord
-from .glyphs import PATTERN_HEIGHT, PATTERN_WIDTH, pattern_shape
+from .glyphs import (
+    PATTERN_HEIGHT, PATTERN_TEXT, PATTERN_WIDTH, pattern_shape,
+)
 
 # 中央に置けなかったときに試す、ランダムな位置の数。
 RANDOM_ATTEMPTS: int = 25
@@ -45,16 +47,17 @@ def place_pattern(
     needed_width, needed_height = PATTERN_WIDTH + 2, PATTERN_HEIGHT + 2
     if width < needed_width or height < needed_height:
         return set(), (
-            f"cannot draw the '42' pattern: a {width}x{height} maze is too "
+            f"cannot draw the '{PATTERN_TEXT}' pattern: a {width}x{height} "
+            f"maze is too "
             f"small for it (at least {needed_width}x{needed_height} cells "
             f"are needed)"
         )
     cells = _find_position(width, height, reserved, rng)
     if cells is None:
         return set(), (
-            f"cannot draw the '42' pattern: no place in the {width}x{height} "
-            f"maze leaves the entry, the exit, the corners and the centre "
-            f"free"
+            f"cannot draw the '{PATTERN_TEXT}' pattern: no place in the "
+            f"{width}x{height} maze leaves the entry, the exit, the corners "
+            f"and the centre free"
         )
     return cells, None
 

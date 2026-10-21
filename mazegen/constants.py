@@ -44,6 +44,8 @@ LETTER: Dict[int, str] = {NORTH: "N", EAST: "E", SOUTH: "S", WEST: "W"}
 
 # 迷路の一辺として認める大きさ。MazeGenerator の引数の検証で使う。
 MIN_SIZE: int = 2
+# 変えるときは、README.md / README.ja.md と mazegen/__init__.py に書いた
+# 「1000」も直す。
 MAX_SIZE: int = 1000
 
 # Pac-Man 盤（PERFECT=False）に必要な、独立したループの最小数。

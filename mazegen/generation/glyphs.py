@@ -35,6 +35,8 @@ GLYPH_HEIGHT: int = 7
 # 文字と文字の間に空けるセル数。
 GLYPH_GAP: int = 1
 
+# 描く文字列。ここに書く文字はすべて、上の GLYPHS に字形が要る
+# （字形のない文字を書くと、生成のときに KeyError になる）。
 PATTERN_TEXT: str = "42"
 # "42" 全体の大きさ（セル数）。
 PATTERN_WIDTH: int = (
