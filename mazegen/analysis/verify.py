@@ -112,9 +112,11 @@ def _check_playable(
             problems.append(f"the {name} is not an open corridor")
     ends = dead_ends(grid, region)
     if len(ends) > MAX_DEAD_ENDS:
+        # 長くなりすぎないよう、最初の 5 つだけを挙げる。
         listed = ", ".join(f"{x},{y}" for x, y in ends[:5])
+        more = "..." if len(ends) > 5 else ""
         problems.append(
             f"a playable board should not keep {len(ends)} "
-            f"dead-ends ({listed}...)"
+            f"dead-ends ({listed}{more})"
         )
     return problems

@@ -1,8 +1,8 @@
 """mazegen -- 依存関係のない小さな迷路生成モジュール。
 
 長方形の迷路を作り、解いて、壁の対応関係が崩れないように保つ。迷路を
-作るクラスは MazeGenerator ひとつだけ（ほかに例外 MazeError と、壁の
-向きの定数を公開する）。
+作るクラスは MazeGenerator ひとつだけ（ほかに例外 MazeError、壁の向きの
+定数、座標の型 Coord、新しいシードを引く random_seed() を公開する）。
 
 使い方::
 
@@ -13,7 +13,7 @@
 
     print(gen.grid[0])       # 1 行目の壁ビットマスク
     print(gen.solution)      # [(0, 0), (1, 0), ...]
-    print(gen.directions)    # 'ESSEEN...'
+    print(gen.directions)    # 'EEESSSWS...'
 
 主なコンストラクタ引数: width/height（格子の大きさ、2 以上 1000 以下）、
 entry/exit（入口と出口の座標。既定値は左上と右下）、perfect（True

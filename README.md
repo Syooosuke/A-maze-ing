@@ -248,7 +248,7 @@ Verdict: Pac-Man-USABLE: fully connected, corners and centre reachable,
          41 independent routes; ...
 
 # PERFECT=True
-Verdict: PERFECT maze: a single path, no loop -> matches PERFECT=True
+Verdict: PERFECT maze: a single path, no loop -> matches PERFECT=True ...
 ```
 
 The analyzer calls our loops "independent routes": both count the same
@@ -305,7 +305,10 @@ gen = MazeGenerator(
 gen.generate()
 ```
 
-Any invalid combination raises `mazegen.MazeError` with an explicit message.
+Any invalid value (a size out of range, an entry or exit outside the maze,
+entry equal to exit, a 2×2 playable board) raises `mazegen.MazeError` with
+an explicit message. `perfect` defaults to `False`, like the `PERFECT` flag
+of the subject.
 
 ### Access the generated structure and the solution
 
@@ -320,9 +323,9 @@ gen.pattern_warning   # why the "42" was skipped, or None
 gen.seed_used         # replay this seed to rebuild the very same maze
 
 gen.solution          # [(0, 0), (1, 0), ...] shortest entry -> exit path
-gen.directions        # the same path as "ESSEEN..." letters
+gen.directions        # the same path as "EEESSEES..." letters
 
-gen.to_hex_lines()    # ['9155...', ...] one hex digit per cell
+gen.to_hex_lines()    # ['915155...', ...] one hex digit per cell
 gen.dead_ends()       # cells with a single open wall
 gen.loop_count()      # number of independent loops
 gen.check()           # [] when the maze meets every requirement
@@ -429,13 +432,14 @@ unnoticed.
 ├── pyproject.toml                    # package build configuration
 ├── Makefile
 ├── .flake8                           # flake8 excludes (.venv, build, ...)
+├── .gitignore                        # caches, venv, build, generated mazes
 ├── LICENSE.md                        # MIT, and why
 ├── README.md                         # this file (English)
 └── README.ja.md                      # Japanese translation
 ```
 
-Only the files required by the subject are committed, plus `.gitignore`
-and `.flake8`: no cache, no build leftover. `.flake8` tells flake8 to skip
+Only the files required by the subject are committed, plus `.gitignore`,
+`.flake8` and the Japanese README: no cache, no build leftover. `.flake8` tells flake8 to skip
 the virtual environment created by `make install`, so that the plain
 `flake8 .` asked by the subject checks our sources only. The test programs are
 deliberately absent ("not submitted or graded"), and so is
@@ -459,7 +463,7 @@ Copy it next to the `Makefile` to use `make analyze`.
 | 2    | Perfect maze generation + output file     | Started with the recursive backtracker only. Prim and Kruskal were added afterwards as a bonus, once `check()` could verify every algorithm automatically. |
 | 3    | “42” pattern                              | Took longer than planned: the first 3×5 font left one-cell pockets that the braiding could not open. Replaced by a 4×7 font, placed so that the rest of the maze stays connected. |
 | 4    | Braiding for the Pac-Man mode             | Done after the perfect maze, as planned. Braiding removes dead-ends and only opens a wall when no 3×3 open area appears; a final pass guarantees at least two loops. The subject's `maze_analyzer.py` was wired into the tests to confirm it. |
-| 5    | Terminal rendering and menu               | The terminal renderer and its menu were done as planned. A MiniLibX window was added as an option, sharing the same canvas and colour themes; as the subject's wheels are Linux-only, it falls back to the terminal when `mlx` is unavailable. |
+| 5    | Terminal rendering and menu               | The terminal renderer and its menu were done as planned. A MiniLibX window was added as an option, sharing the same canvas and colour themes; as the subject's wheels are Linux-only, it fell back to the terminal when `mlx` was unavailable (removed in step 6). |
 | 6    | Packaging, README, licence                | The wheel, the MIT licence and the README came last, as planned. After that, the code was cleaned up for readability, a Japanese README was added, and `mazegen.py` was split into a layered package without changing its public API. Finally, the bonuses (Prim, Kruskal) and the optional features (MiniLibX window, save menu, extra configuration keys) were removed, to keep the submission small and quick to review; unused public methods and re-exports were dropped afterwards. |
 
 ### What worked well, what could be improved
@@ -470,11 +474,11 @@ Copy it next to the `Makefile` to use `make analyze`.
 * **Worked well:** writing `check()` early. Every requirement of the subject
   became an assertion, and the randomised stress test caught the pattern
   dead-end bug that a single hand-picked maze would have hidden.
-* **To improve:** the braiding is greedy and could be smarter about where it
-  opens walls, which would give more regular, more Pac-Man looking boards.
 * **Worked well:** wiring the subject's `maze_analyzer.py` into the tests.
   It is the exact oracle the project is graded against, so there was no
   guessing left about the Pac-Man rules.
+* **To improve:** the braiding is greedy and could be smarter about where it
+  opens walls, which would give more regular, more Pac-Man looking boards.
 
 ### Tools
 

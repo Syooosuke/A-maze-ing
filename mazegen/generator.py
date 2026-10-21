@@ -29,10 +29,12 @@ class MazeGenerator:
         height: int,
         entry: Coord = (0, 0),
         exit: Optional[Coord] = None,
-        perfect: bool = True,
+        perfect: bool = False,
         seed: Optional[int] = None,
     ) -> None:
         """条件を検証して保存する。迷路はまだ作らない。
+
+        perfect の既定値は subject と同じく False（Pac-Man 盤）。
 
         Raises:
             MazeError: 条件では迷路を作れない場合。
@@ -66,6 +68,10 @@ class MazeGenerator:
         Args:
             seed: 今回だけ使うシード。省略するとコンストラクタのシードを
                 使い、それも None ならランダムに選ぶ（seed_used に残る）。
+
+        Raises:
+            MazeError: 入口から出口への経路ができなかった場合。"42" は残りの
+                セルがつながる位置にしか置かないので、通常は起きない。
         """
         if seed is None:
             seed = self.seed if self.seed is not None else random_seed()
@@ -91,7 +97,7 @@ class MazeGenerator:
 
         # 3. Pac-Man 盤なら、行き止まりをなくし、ループを MIN_LOOPS 個以上に
         #    する。行き止まりをなくすだけでたいてい十分なループができる
-        #    （25x17 で 41 個）ので、add_loops は何もしないことが多い。
+        #    （config.txt の 25x17・SEED=42 で 41 個）ので、add_loops は何もしないことが多い。
         if not self.perfect:
             braiding.remove_dead_ends(self._grid, self._region, rng)
             braiding.add_loops(self._grid, self._region, rng, MIN_LOOPS)
