@@ -309,10 +309,11 @@ Verdict: PERFECT maze: a single path, no loop -> matches PERFECT=True
 **依存はなく**、設定ファイルや端末や色のことは何も知りません。これは
 リポジトリ直下で pip パッケージとして公開しています。
 
-パッケージの中は層で分かれています。`MazeBase` が共有する状態と格子の
-操作を持ち、`PatternMixin` / `AnalysisMixin` / `CarvingMixin` /
-`VerifyMixin` がその上に積み上がり、`MazeGenerator` がそれらを束ねます。
-外から見える API は分割前と変わりません。
+パッケージの中は役割ごとのモジュールに分かれています。`Grid` が
+セルと壁を持ち、`algorithms` / `braiding` / `pattern` / `analysis` /
+`verify` はそれを引数に受け取る関数です。`MazeGenerator.generate()` は
+それらを上から順に呼ぶだけなので、生成の流れはこのメソッドを読めば
+追えます。
 
 * `mazegen-1.0.0-py3-none-any.whl`
 
@@ -473,22 +474,34 @@ AI をブラックボックスとして使うことは **しませんでした**
 ├── a_maze_ing.py                     # メインプログラム（エントリポイント）
 ├── mazegen/                          # 再利用パッケージ: MazeGenerator
 │   ├── __init__.py                   # 公開 API とモジュール docstring
-│   ├── constants.py                  # 壁ビット、向き、大きさの上限
-│   ├── errors.py                     # MazeError
+│   ├── generator.py                  # MazeGenerator: 生成の手順
+│   ├── reader.py                     # MazeReader: walls_at(), solve() など
+│   ├── validation.py                 # コンストラクタ引数の検証
+│   ├── grid.py                       # Grid: セルとその壁
+│   ├── pattern.py                    # "42" の置き場所
 │   ├── glyphs.py                     # "42" のビットマップ字形
-│   ├── base.py                       # MazeBase: 共有状態と格子操作
-│   ├── pattern.py                    # PatternMixin: パターンの配置
-│   ├── analysis.py                   # AnalysisMixin: 経路探索と統計
-│   ├── carving.py                    # CarvingMixin: 全域木と編み込み
-│   ├── verify.py                     # VerifyMixin: 自己検証
-│   └── generator.py                  # MazeGenerator の組み立て
+│   ├── algorithms.py                 # バックトラッカー、Prim、Kruskal
+│   ├── braiding.py                   # 行き止まりの除去とループの追加
+│   ├── analysis.py                   # 最短経路、ループ、行き止まり
+│   ├── verify.py                     # subject の要件の自己検証
+│   ├── constants.py                  # 壁ビット、向き、大きさの上限
+│   └── errors.py                     # MazeError
 ├── mazegen-1.0.0-py3-none-any.whl    # ビルド済み pip パッケージ
-├── amazeing/
-│   ├── config.py                     # KEY=VALUE の解析と検証
+├── amazeing/                         # アプリケーション（パッケージ外）
+│   ├── config.py                     # load_config(): MazeConfig を作る
+│   ├── config_reader.py              # KEY=VALUE の行を読む
+│   ├── config_values.py              # 値の変換（整数、真偽値、x,y）
 │   ├── output.py                     # 出力ファイルの書き出し
-│   ├── render.py                     # 端末描画、配色テーマ
-│   ├── ui.py                         # 対話メニュー
-│   └── mlxview.py                    # 任意機能の MiniLibX ウィンドウ
+│   ├── canvas.py                     # 何をどこに描くか（色は持たない）
+│   ├── themes.py                     # 配色テーマ
+│   ├── render.py                     # キャンバス -> 端末の文字列
+│   ├── session.py                    # 表示中の迷路と表示設定
+│   ├── menu.py                       # 端末の対話メニュー
+│   ├── mlxview.py                    # 任意機能の MiniLibX ウィンドウ
+│   ├── mlx_window.py                 # MiniLibX のウィンドウと画像
+│   ├── mlx_setup.py                  # MiniLibX の可否、描画倍率
+│   ├── mlx_colours.py                # 配色 -> RGB
+│   └── mlx_keys.py                   # ウィンドウのキー操作
 ├── config.txt                        # 既定の設定
 ├── pyproject.toml                    # パッケージのビルド設定
 ├── Makefile

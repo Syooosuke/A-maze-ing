@@ -1,103 +1,117 @@
-""""42" のパターンをどこに置くか。"""
+""""42" のパターンを、迷路のどこに置くかを決める。"""
 
 from __future__ import annotations
 
-from typing import Dict, Iterator, List, Optional, Set, Tuple
-from .base import MazeBase
-from .constants import Coord
-from .glyphs import _GLYPH_H, _glyph_shape, _glyph_span
+import random
+from collections import deque
+from typing import Deque, Dict, List, Optional, Set, Tuple
 
-# The pattern is never allowed to eat more than this share of the grid,
-# otherwise the maze itself becomes too cramped to stay interesting.
-_MAX_PATTERN_RATIO = 0.30
+from .constants import DELTA, Coord
+from .glyphs import GLYPH_HEIGHT, text_cells, text_width
 
-# 中央に置けなかったときに、ずらして試す回数。
-_FIT_ATTEMPTS = 25
+# パターンが格子のこれ以上の割合を占めるなら、もう一段小さく描く。
+# 大きすぎると、迷路として遊べる部分が窮屈になる。
+MAX_PATTERN_RATIO = 0.30
+
+# 中央に置けなかったときに試す、ランダムな位置の数。
+RANDOM_ATTEMPTS = 25
 
 
-class PatternMixin(MazeBase):
-    """パターンを収める場所を探し、そのセルを予約する。"""
+def landmarks(width: int, height: int) -> Dict[str, Coord]:
+    """Pac-Man 盤で必ず通路にしておく、四隅と中央のセルを返す。"""
+    return {
+        "north-west corner": (0, 0),
+        "north-east corner": (width - 1, 0),
+        "south-west corner": (0, height - 1),
+        "south-east corner": (width - 1, height - 1),
+        "centre": (width // 2, height // 2),
+    }
 
-    def _landmarks(self) -> Dict[str, Coord]:
-        """パターンで塞いではいけない、四隅と中央を返す。"""
-        return {
-            "north-west corner": (0, 0),
-            "north-east corner": (self.width - 1, 0),
-            "south-west corner": (0, self.height - 1),
-            "south-east corner": (self.width - 1, self.height - 1),
-            "centre": (self.width // 2, self.height // 2),
-        }
 
-    def _place_pattern(self) -> Tuple[Set[Coord], Optional[str]]:
-        """パターンが収まる位置を探す。収まらなければ空集合と理由を返す。"""
-        if not self.pattern or not self.pattern_text:
-            return set(), None
+def place_pattern(
+    width: int, height: int, text: str, reserved: Set[Coord],
+    rng: random.Random,
+) -> Tuple[Set[Coord], Optional[str]]:
+    """text のパターンを置くセルを決める。大きい倍率から順に試す。
 
-        reserved = {self.entry, self.exit, *self._landmarks().values()}
-        budget = _MAX_PATTERN_RATIO * self.width * self.height
-        span = _glyph_span(self.pattern_text)
-        max_scale = min(
-            (self.width - 2) // span,
-            (self.height - 2) // _GLYPH_H,
+    reserved（入口、出口、四隅、中央）はパターンで塞がない。
+
+    Returns:
+        (パターンのセル, None)。置けなかったときは (空集合, 理由)。
+    """
+    # 外周に 1 セルずつ余白を残して収まる、いちばん大きな倍率。
+    largest_scale = min(
+        (width - 2) // text_width(text),
+        (height - 2) // GLYPH_HEIGHT,
+    )
+    for scale in range(largest_scale, 0, -1):
+        shape = text_cells(text, scale)
+        if len(shape) > MAX_PATTERN_RATIO * width * height:
+            continue
+        shape_width = text_width(text) * scale
+        shape_height = GLYPH_HEIGHT * scale
+        cells = _find_position(
+            width, height, shape, shape_width, shape_height, reserved, rng
         )
-        for scale in range(max_scale, 0, -1):
-            shape, shape_w, shape_h = _glyph_shape(self.pattern_text, scale)
-            if len(shape) > budget:
-                continue
-            cells = self._fit_shape(shape, shape_w, shape_h, reserved)
-            if cells is not None:
-                return cells, None
+        if cells is not None:
+            return cells, None
 
-        return set(), (
-            f"the {self.pattern_text!r} pattern was skipped: a "
-            f"{self.width}x{self.height} maze is too small for it "
-            f"(at least {span + 2}x{_GLYPH_H + 2} cells are needed)"
-        )
+    needed_width = text_width(text) + 2
+    needed_height = GLYPH_HEIGHT + 2
+    return set(), (
+        f"the {text!r} pattern was skipped: a {width}x{height} maze is "
+        f"too small for it (at least {needed_width}x{needed_height} cells "
+        f"are needed)"
+    )
 
-    def _fit_shape(
-        self,
-        shape: Set[Coord],
-        shape_w: int,
-        shape_h: int,
-        reserved: Set[Coord],
-    ) -> Optional[Set[Coord]]:
-        """shape を、外周から 1 マス空けて予約セルを避けつつ置ける場所を探す。
 
-        置いた後も残りのセルがすべてつながっている必要がある。置き場所
-        が見つからなければ None を返す。
-        """
-        if shape_w + 2 > self.width or shape_h + 2 > self.height:
-            return None
-        max_x = self.width - shape_w - 1
-        max_y = self.height - shape_h - 1
-        # まず中央を試し、駄目なら適当な場所をいくつか当たってみる。
-        centred: Coord = (
-            min(max(1, (self.width - shape_w) // 2), max_x),
-            min(max(1, (self.height - shape_h) // 2), max_y),
-        )
-        offsets: List[Coord] = [centred] + [
-            (self._rng.randint(1, max_x), self._rng.randint(1, max_y))
-            for _ in range(_FIT_ATTEMPTS)
-        ]
-        for off_x, off_y in offsets:
-            cells = {(x + off_x, y + off_y) for x, y in shape}
-            if cells & reserved:
-                continue
-            if self._leaves_connected_region(cells):
-                return cells
-        return None
+def _find_position(
+    width: int, height: int, shape: Set[Coord], shape_width: int,
+    shape_height: int, reserved: Set[Coord], rng: random.Random,
+) -> Optional[Set[Coord]]:
+    """shape を置ける位置を探し、置いたときのセルを返す。
 
-    def _leaves_connected_region(self, blocked: Set[Coord]) -> bool:
-        """blocked 以外のセルが連結のままかを返す。壁はまだ見ない。"""
-        free = [cell for cell in self._all_cells() if cell not in blocked]
-        if not free:
-            return False
+    外周から 1 セル空けて置き、reserved のセルは塞がない。置いた後も
+    残りのセルがすべてつながっている必要がある。まず中央を試し、だめ
+    ならランダムな位置をいくつか試す。見つからなければ None。
+    """
+    max_left = width - shape_width - 1
+    max_top = height - shape_height - 1
+    centre = (
+        min(max(1, (width - shape_width) // 2), max_left),
+        min(max(1, (height - shape_height) // 2), max_top),
+    )
+    # 乱数は先にまとめて引いておく。どこで見つかっても、乱数の消費量が
+    # 同じになり、後に続く迷路の生成が安定する。
+    randoms = [
+        (rng.randint(1, max_left), rng.randint(1, max_top))
+        for _ in range(RANDOM_ATTEMPTS)
+    ]
+    for left, top in [centre] + randoms:
+        cells = {(x + left, y + top) for x, y in shape}
+        if cells & reserved:
+            continue
+        if _rest_is_connected(width, height, cells):
+            return cells
+    return None
 
-        def neighbours(cell: Coord) -> Iterator[Coord]:
-            return (
-                other
-                for _, other in self._steps_from(cell)
-                if self._in_bounds(*other) and other not in blocked
-            )
 
-        return len(self._flood(free[0], neighbours)) == len(free)
+def _rest_is_connected(width: int, height: int, blocked: Set[Coord]) -> bool:
+    """blocked 以外のセルが上下左右でひとつながりかを返す。壁は見ない。"""
+    free: List[Coord] = [
+        (x, y) for y in range(height) for x in range(width)
+        if (x, y) not in blocked
+    ]
+    if not free:
+        return False
+    seen: Set[Coord] = {free[0]}
+    queue: Deque[Coord] = deque([free[0]])
+    while queue:
+        x, y = queue.popleft()
+        for dx, dy in DELTA.values():
+            other = (x + dx, y + dy)
+            inside = 0 <= other[0] < width and 0 <= other[1] < height
+            if inside and other not in blocked and other not in seen:
+                seen.add(other)
+                queue.append(other)
+    return len(seen) == len(free)

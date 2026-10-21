@@ -1,107 +1,118 @@
-"""生成した迷路が要件を満たしているかの自己検証。"""
+"""生成した迷路が subject の要件を満たしているかを確かめる。"""
 
 from __future__ import annotations
 
-from typing import Iterator, List, Tuple
-from .analysis import AnalysisMixin
-from .constants import ALL_WALLS, Coord, EAST, NORTH, SOUTH, WEST, _OPPOSITE
+from typing import List, Set
 
-from .pattern import PatternMixin
+from .analysis import count_components, dead_ends, loop_count
+from .constants import ALL_WALLS, EAST, NORTH, OPPOSITE, SOUTH, WEST, Coord
+from .grid import Grid
+from .pattern import landmarks
 
 
-class VerifyMixin(AnalysisMixin, PatternMixin):
-    """subject の要件に照らして、満たしていない点を挙げる。"""
+def find_problems(
+    grid: Grid, region: List[Coord], pattern_cells: Set[Coord],
+    perfect: bool,
+) -> List[str]:
+    """迷路が満たしていない要件を、読める文で列挙する。
 
-    def check(self) -> List[str]:
-        """生成した迷路が要件を満たしているか検証する。
-
-        Returns:
-            見つかった問題点。すべて満たしていれば空のリスト。
-        """
-        problems: List[str] = []
-        problems.extend(self._check_borders())
-        problems.extend(self._check_coherence())
-        problems.extend(self._check_pattern())
-        problems.extend(self._check_areas())
-        if self._component_count() != 1:
-            problems.append(
-                "the corridors are not fully connected: "
-                "some cells are isolated"
-            )
-        elif not self.perfect:
-            problems.extend(self._check_playable())
-        elif self.loop_count() != 0:
+    Returns:
+        見つかった問題点。すべて満たしていれば空のリスト。
+    """
+    problems: List[str] = []
+    problems += _check_borders(grid)
+    problems += _check_shared_walls(grid)
+    problems += _check_pattern_closed(grid, pattern_cells)
+    problems += _check_no_3x3_area(grid)
+    if count_components(grid, region) != 1:
+        problems.append(
+            "the corridors are not fully connected: some cells are isolated"
+        )
+    elif perfect:
+        if loop_count(grid, region) != 0:
             problems.append("a perfect maze must not contain any loop")
-        return problems
+    else:
+        problems += _check_playable(grid, region, pattern_cells)
+    return problems
 
-    def _border_walls(self) -> Iterator[Tuple[Coord, int, str]]:
-        """外周に面するセルと、閉じているべき壁と、その辺の名前を返す。"""
-        for x in range(self.width):
-            yield (x, 0), NORTH, "north"
-            yield (x, self.height - 1), SOUTH, "south"
-        for y in range(self.height):
-            yield (0, y), WEST, "west"
-            yield (self.width - 1, y), EAST, "east"
 
-    def _check_borders(self) -> List[str]:
-        """迷路の外周の壁がすべて閉じているかを確かめる。"""
-        return [
-            f"cell {x},{y} opens through the {name} border"
-            for (x, y), wall, name in self._border_walls()
-            if not self.grid[y][x] & wall
-        ]
+def _check_borders(grid: Grid) -> List[str]:
+    """外周の壁がすべて閉じているかを確かめる。"""
+    problems: List[str] = []
+    for x in range(grid.width):
+        top, bottom = (x, 0), (x, grid.height - 1)
+        if not grid.has_wall(top, NORTH):
+            problems.append(f"cell {x},0 opens through the north border")
+        if not grid.has_wall(bottom, SOUTH):
+            problems.append(
+                f"cell {x},{grid.height - 1} opens through the south border"
+            )
+    for y in range(grid.height):
+        left, right = (0, y), (grid.width - 1, y)
+        if not grid.has_wall(left, WEST):
+            problems.append(f"cell 0,{y} opens through the west border")
+        if not grid.has_wall(right, EAST):
+            problems.append(
+                f"cell {grid.width - 1},{y} opens through the east border"
+            )
+    return problems
 
-    def _check_coherence(self) -> List[str]:
-        """隣り合うセルが共有する壁について一致しているか確かめる。"""
-        problems: List[str] = []
-        for x, y in self._all_cells():
-            for direction in (EAST, SOUTH):
-                other_x, other_y = self._step(x, y, direction)
-                if not self._in_bounds(other_x, other_y):
-                    continue
-                mine = bool(self.grid[y][x] & direction)
-                theirs = bool(
-                    self.grid[other_y][other_x] & _OPPOSITE[direction]
+
+def _check_shared_walls(grid: Grid) -> List[str]:
+    """隣り合う 2 セルが、間の壁について同じ答えを持っているかを確かめる。"""
+    problems: List[str] = []
+    for cell in grid.cells():
+        for direction in (EAST, SOUTH):
+            other = grid.neighbour(cell, direction)
+            if not grid.in_bounds(other):
+                continue
+            if grid.has_wall(cell, direction) != grid.has_wall(
+                other, OPPOSITE[direction]
+            ):
+                problems.append(
+                    f"cells {cell[0]},{cell[1]} and {other[0]},{other[1]} "
+                    "disagree on their shared wall"
                 )
-                if mine != theirs:
-                    problems.append(
-                        f"cells {x},{y} and {other_x},{other_y} "
-                        "disagree on their shared wall"
-                    )
-        return problems
+    return problems
 
-    def _check_pattern(self) -> List[str]:
-        """パターンのセルが完全に閉じたままかを確かめる。"""
-        return [
-            f"pattern cell {x},{y} is not fully closed"
-            for x, y in sorted(self.pattern_cells)
-            if self.grid[y][x] != ALL_WALLS
-        ]
 
-    def _check_areas(self) -> List[str]:
-        """3x3 の区画が完全に開いていないかを確かめる。"""
-        return [
-            f"the 3x3 area at {x},{y} is completely open"
-            for y in range(self.height - 2)
-            for x in range(self.width - 2)
-            if self.is_block_open(x, y, 3, 3)
-        ]
+def _check_pattern_closed(grid: Grid, pattern_cells: Set[Coord]) -> List[str]:
+    """"42" のセルが 4 枚の壁ですべて閉じているかを確かめる。"""
+    return [
+        f"pattern cell {x},{y} is not fully closed"
+        for x, y in sorted(pattern_cells)
+        if grid.walls[y][x] != ALL_WALLS
+    ]
 
-    def _check_playable(self) -> List[str]:
-        """Pac-Man 盤（非完全迷路）に固有の規則を確かめる。"""
-        problems: List[str] = []
-        if self.loop_count() < 2:
-            problems.append(
-                "a playable board needs at least two independent routes"
-            )
-        for name, (x, y) in self._landmarks().items():
-            if (x, y) in self.pattern_cells or self.degree(x, y) == 0:
-                problems.append(f"the {name} is not an open corridor")
-        ends = self.dead_ends()
-        if len(ends) > 2:
-            listed = ", ".join(f"{x},{y}" for x, y in ends[:5])
-            problems.append(
-                f"a playable board should not keep {len(ends)} "
-                f"dead-ends ({listed}...)"
-            )
-        return problems
+
+def _check_no_3x3_area(grid: Grid) -> List[str]:
+    """壁のない 3x3 の区画がないかを確かめる（通路の幅は 2 セルまで）。"""
+    return [
+        f"the 3x3 area at {x},{y} is completely open"
+        for y in range(grid.height - 2)
+        for x in range(grid.width - 2)
+        if grid.is_block_open(x, y, 3, 3)
+    ]
+
+
+def _check_playable(
+    grid: Grid, region: List[Coord], pattern_cells: Set[Coord]
+) -> List[str]:
+    """Pac-Man 盤（PERFECT=False）にだけ求められる規則を確かめる。"""
+    problems: List[str] = []
+    if loop_count(grid, region) < 2:
+        problems.append(
+            "a playable board needs at least two independent routes"
+        )
+    for name, cell in landmarks(grid.width, grid.height).items():
+        if cell in pattern_cells or grid.degree(cell) == 0:
+            problems.append(f"the {name} is not an open corridor")
+    ends = dead_ends(grid, region)
+    # subject は「行き止まりは 2 つ程度までなら許容」としている。
+    if len(ends) > 2:
+        listed = ", ".join(f"{x},{y}" for x, y in ends[:5])
+        problems.append(
+            f"a playable board should not keep {len(ends)} "
+            f"dead-ends ({listed}...)"
+        )
+    return problems

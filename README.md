@@ -468,22 +468,34 @@ unnoticed.
 ├── a_maze_ing.py                     # main program (entry point)
 ├── mazegen/                          # reusable package: MazeGenerator
 │   ├── __init__.py                   # public API and module docstring
+│   ├── generator.py                  # MazeGenerator: the generation steps
+│   ├── reader.py                     # MazeReader: walls_at(), solve(), ...
+│   ├── validation.py                 # checks of the constructor arguments
+│   ├── grid.py                       # Grid: cells and their walls
+│   ├── pattern.py                    # where the "42" goes
+│   ├── glyphs.py                     # bitmap font of the "42"
+│   ├── algorithms.py                 # backtracker, Prim, Kruskal
+│   ├── braiding.py                   # dead-end removal, extra loops
+│   ├── analysis.py                   # shortest path, loops, dead-ends
+│   ├── verify.py                     # self-check against the subject
 │   ├── constants.py                  # wall bits, directions, size limits
-│   ├── errors.py                     # MazeError
-│   ├── glyphs.py                     # bitmap glyphs for the "42" pattern
-│   ├── base.py                       # MazeBase: shared state and grid ops
-│   ├── pattern.py                    # PatternMixin: pattern placement
-│   ├── analysis.py                   # AnalysisMixin: solving and stats
-│   ├── carving.py                    # CarvingMixin: spanning tree, braiding
-│   ├── verify.py                     # VerifyMixin: self-verification
-│   └── generator.py                  # MazeGenerator assembly
+│   └── errors.py                     # MazeError
 ├── mazegen-1.0.0-py3-none-any.whl    # built pip package
-├── amazeing/
-│   ├── config.py                     # KEY=VALUE parsing and validation
+├── amazeing/                         # the application (not packaged)
+│   ├── config.py                     # load_config(): builds a MazeConfig
+│   ├── config_reader.py              # reads the KEY=VALUE lines
+│   ├── config_values.py              # converts the values (int, bool, x,y)
 │   ├── output.py                     # output file writing
-│   ├── render.py                     # terminal rendering, colour themes
-│   ├── ui.py                         # interactive menu
-│   └── mlxview.py                    # optional MiniLibX window
+│   ├── canvas.py                     # what to draw where (no colours)
+│   ├── themes.py                     # colour themes
+│   ├── render.py                     # canvas -> terminal text
+│   ├── session.py                    # displayed maze and display options
+│   ├── menu.py                       # interactive terminal menu
+│   ├── mlxview.py                    # optional MiniLibX window
+│   ├── mlx_window.py                 # MiniLibX window and image
+│   ├── mlx_setup.py                  # is MiniLibX usable, window scale
+│   ├── mlx_colours.py                # theme colours -> RGB
+│   └── mlx_keys.py                   # keys of the window
 ├── config.txt                        # default configuration
 ├── pyproject.toml                    # package build configuration
 ├── Makefile
