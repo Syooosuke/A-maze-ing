@@ -1,6 +1,6 @@
 """迷路を描くための中間表現。何をどこに描くかだけを決め、色は持たない。
 
-迷路の 1 セルを、キャンバスでは 3x3 のマスで表す（隣のセルと壁のマスを
+迷路の 1 セルを、キャンバスでは縦横 3 マスで表す（隣のセルと壁のマスを
 共有するので、実際には 2 マスずつずれて並ぶ）::
 
     +--+--+        セル (x, y) の中心は (行, 列) = (2y+1, 2x+1)。
@@ -56,7 +56,7 @@ class Canvas:
         """各セルの閉じた壁を、壁のマスに描く。"""
         for y in range(self.generator.height):
             for x in range(self.generator.width):
-                walls = self.generator.walls_at(x, y)
+                walls = self.generator.grid[y][x]
                 for direction, (d_row, d_col) in WALL_OFFSETS.items():
                     if walls & direction:
                         self.cells[2 * y + 1 + d_row][2 * x + 1 + d_col] = (

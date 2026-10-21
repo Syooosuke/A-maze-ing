@@ -7,18 +7,18 @@ from collections import deque
 from typing import Deque, Dict, List, Optional, Set, Tuple
 
 from ..constants import DELTA, Coord
-from .glyphs import GLYPH_HEIGHT, text_cells, text_width
-
-# パターンが格子のこれ以上の割合を占めるなら、もう一段小さく描く。
-# 大きすぎると、迷路として遊べる部分が窮屈になる。
-MAX_PATTERN_RATIO = 0.30
+from .glyphs import PATTERN_HEIGHT, PATTERN_WIDTH, pattern_shape
 
 # 中央に置けなかったときに試す、ランダムな位置の数。
 RANDOM_ATTEMPTS = 25
 
 
 def landmarks(width: int, height: int) -> Dict[str, Coord]:
-    """Pac-Man 盤で必ず通路にしておく、四隅と中央のセルを返す。"""
+    """四隅と中央のセルを返す。"42" はどちらのモードでもここを塞がない。
+
+    四隅と中央を通路にするのは Pac-Man 盤の要件。完全迷路でも同じように
+    空けておき、モードによって "42" の置き場所が変わらないようにしている。
+    """
     return {
         "north-west corner": (0, 0),
         "north-east corner": (width - 1, 0),
@@ -29,58 +29,51 @@ def landmarks(width: int, height: int) -> Dict[str, Coord]:
 
 
 def place_pattern(
-    width: int, height: int, text: str, reserved: Set[Coord],
-    rng: random.Random,
+    width: int, height: int, reserved: Set[Coord], rng: random.Random
 ) -> Tuple[Set[Coord], Optional[str]]:
-    """text のパターンを置くセルを決める。大きい倍率から順に試す。
+    """"42" のパターンを置くセルを決める。
 
-    reserved（入口、出口、四隅、中央）はパターンで塞がない。
+    外周から 1 セル空けて置き、reserved（入口、出口、四隅、中央）は
+    パターンで塞がない。
 
     Returns:
         (パターンのセル, None)。置けなかったときは (空集合, 理由)。
     """
-    # 外周に 1 セルずつ余白を残して収まる、いちばん大きな倍率。
-    largest_scale = min(
-        (width - 2) // text_width(text),
-        (height - 2) // GLYPH_HEIGHT,
-    )
-    for scale in range(largest_scale, 0, -1):
-        shape = text_cells(text, scale)
-        if len(shape) > MAX_PATTERN_RATIO * width * height:
-            continue
-        shape_width = text_width(text) * scale
-        shape_height = GLYPH_HEIGHT * scale
-        cells = _find_position(
-            width, height, shape, shape_width, shape_height, reserved, rng
+    # 外周に 1 セルずつ余白を残すので、"42" の大きさ + 2 が必要。
+    needed_width, needed_height = PATTERN_WIDTH + 2, PATTERN_HEIGHT + 2
+    if width < needed_width or height < needed_height:
+        return set(), (
+            f"cannot draw the '42' pattern: a {width}x{height} maze is too "
+            f"small for it (at least {needed_width}x{needed_height} cells "
+            f"are needed)"
         )
-        if cells is not None:
-            return cells, None
-
-    needed_width = text_width(text) + 2
-    needed_height = GLYPH_HEIGHT + 2
-    return set(), (
-        f"the {text!r} pattern was skipped: a {width}x{height} maze is "
-        f"too small for it (at least {needed_width}x{needed_height} cells "
-        f"are needed)"
-    )
+    cells = _find_position(width, height, reserved, rng)
+    if cells is None:
+        return set(), (
+            f"cannot draw the '42' pattern: no place in the {width}x{height} "
+            f"maze leaves the entry, the exit, the corners and the centre "
+            f"free"
+        )
+    return cells, None
 
 
 def _find_position(
-    width: int, height: int, shape: Set[Coord], shape_width: int,
-    shape_height: int, reserved: Set[Coord], rng: random.Random,
+    width: int, height: int, reserved: Set[Coord], rng: random.Random
 ) -> Optional[Set[Coord]]:
-    """shape を置ける位置を探し、置いたときのセルを返す。
+    """"42" を置ける位置を探し、置いたときのセルを返す。
 
-    外周から 1 セル空けて置き、reserved のセルは塞がない。置いた後も
-    残りのセルがすべてつながっている必要がある。まず中央を試し、だめ
-    ならランダムな位置をいくつか試す。見つからなければ None。
+    reserved のセルは塞がず、置いた後も残りのセルがすべてつながって
+    いる必要がある。まず中央を試し、だめならランダムな位置をいくつか
+    試す。見つからなければ None。
+
+    幅が偶数だと、中央のセル（reserved）が "2" の線に重なるので、
+    中央には置けずランダムな位置になる。
     """
-    max_left = width - shape_width - 1
-    max_top = height - shape_height - 1
-    centre = (
-        min(max(1, (width - shape_width) // 2), max_left),
-        min(max(1, (height - shape_height) // 2), max_top),
-    )
+    shape = pattern_shape()
+    # "42" の左上の角を置ける範囲。外周から 1 セル空ける。
+    max_left = width - PATTERN_WIDTH - 1
+    max_top = height - PATTERN_HEIGHT - 1
+    centre = ((width - PATTERN_WIDTH) // 2, (height - PATTERN_HEIGHT) // 2)
     # 乱数は先にまとめて引いておく。どこで見つかっても、乱数の消費量が
     # 同じになり、後に続く迷路の生成が安定する。
     randoms = [

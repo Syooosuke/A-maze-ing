@@ -14,8 +14,8 @@ class OutputError(Exception):
 def build_lines(generator: MazeGenerator) -> List[str]:
     """出力ファイルの内容を 1 行ずつそのまま組み立てる。
 
-    並びは subject が指定するとおりで、1 セルにつき 16 進数 1 桁、1 行に
-    つき 1 行分のセル、空行、続いて入口、出口、最短経路となる。
+    並びは subject が指定するとおり。格子の 1 行をファイルの 1 行にし
+    （1 セルにつき 16 進数 1 桁）、空行のあとに入口、出口、最短経路が続く。
 
     Args:
         generator: ``generate()`` を呼び終えた生成器。
@@ -55,3 +55,5 @@ def write_maze(path: str, generator: MazeGenerator) -> None:
         ) from None
     except OSError as error:
         raise OutputError(f"cannot write {path!r}: {error}") from None
+    except ValueError:  # ファイル名に NUL 文字が含まれているなど
+        raise OutputError(f"{path!r} is not a valid file name") from None

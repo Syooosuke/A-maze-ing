@@ -15,7 +15,7 @@ def remove_dead_ends(
 ) -> None:
     """行き止まりがなくなるまで、行き止まりの壁を 1 枚ずつ開けていく。
 
-    開けると 3x3 の開けた区画ができる壁は開けない。そのため、開けられる
+    開けると 3x3 の壁のない区画ができる壁は開けない。そのため、開けられる
     壁が残っていない行き止まりは、そのまま残ることがある。
     """
     corridors = set(region)
@@ -24,10 +24,11 @@ def remove_dead_ends(
         if not ends:
             return
         rng.shuffle(ends)
-        # リスト内包にしているのは、すべての行き止まりを必ず 1 回ずつ
-        # 処理するため（any() だと最初の True で止まってしまう）。
-        opened = [_open_dead_end(grid, cell, corridors, rng) for cell in ends]
-        if not any(opened):
+        opened_any = False
+        for cell in ends:
+            if _open_dead_end(grid, cell, corridors, rng):
+                opened_any = True
+        if not opened_any:
             return  # どれも開けられなかった。これ以上は進まない。
 
 

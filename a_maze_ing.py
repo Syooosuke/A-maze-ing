@@ -7,22 +7,24 @@
 
 処理の流れ:
     1. 設定ファイルを読む（amazeing.config）
-    2. 迷路を生成する（mazegen.MazeGenerator）
+    2. 迷路を生成し、要件を自己検査した結果を表示する
+       （mazegen.MazeGenerator.check() を display.session.report_problems
+       から呼ぶ。作り直したときも同じ関数を使うので display にある）
     3. OUTPUT_FILE に書き出す（amazeing.output）
-    4. 表示する。DISPLAY=mlx ならウィンドウ（amazeing.minilibx）、そうで
-       なければ端末。標準入力が端末なら対話メニュー（amazeing.display）
+    4. 端末に表示する。入力も出力も端末なら対話メニューを開く
+       （amazeing.display）
 """
 
 from __future__ import annotations
 
 import os
 import sys
-from typing import List, Optional
+from typing import List, Optional, TextIO
 
-from amazeing.config import ConfigError, MazeConfig, load_config
-from amazeing.display.menu import run, show
+from amazeing.config import ConfigError, load_config
+from amazeing.display import menu
+from amazeing.display.render import can_draw_blocks
 from amazeing.display.session import Session, report_problems
-from amazeing.minilibx.viewer import MlxUnavailable, show_in_window
 from amazeing.output import OutputError, write_maze
 from mazegen import MazeError, MazeGenerator
 
@@ -32,7 +34,8 @@ USAGE = "Usage: python3 a_maze_ing.py <config file>"
 def main(argv: Optional[List[str]] = None) -> int:
     """プログラムの入口。終了ステータス（成功なら 0、エラーなら 1）を返す。
 
-    想定内のエラーはすべてここで捕まえ、"Error: ..." の 1 行を表示する。
+    エラーはすべてここで捕まえ、トレースバックを出さずに 1 行で知らせる。
+    出力先のパイプが先に閉じられたときだけは、何も表示せずに終わる。
     """
     args = sys.argv if argv is None else argv
     if len(args) != 2:
@@ -43,11 +46,19 @@ def main(argv: Optional[List[str]] = None) -> int:
         return 0
     try:
         run_program(args[1])
+        if sys.stdout is not None:
+            sys.stdout.flush()  # 書き出しの失敗を、ここで捕まえるため
+    except BrokenPipeError:
+        _silence_output()
+        return 1
     except (ConfigError, MazeError, OutputError, OSError) as error:
         print(f"Error: {error}", file=sys.stderr)
         return 1
     except KeyboardInterrupt:
         print("\nInterrupted.", file=sys.stderr)
+        return 1
+    except Exception as error:  # 想定外のエラーでもトレースバックは出さない
+        print(f"Error: unexpected failure: {error}", file=sys.stderr)
         return 1
     return 0
 
@@ -55,66 +66,51 @@ def main(argv: Optional[List[str]] = None) -> int:
 def run_program(config_path: str) -> None:
     """設定を読み、迷路を生成し、書き出して表示する。"""
     config = load_config(config_path)
-    generator = build_generator(config)
-    generator.generate()
-    if generator.pattern_warning is not None:
-        print(f"Warning: {generator.pattern_warning}", file=sys.stderr)
-    report_problems(generator)
-
-    write_maze(config.output_file, generator)
-    print(f"Maze written to {config.output_file}")
-
-    session = Session(generator, config)
-    session.colour = use_colour(config)
-    if config.display == "mlx" and show_window(session):
-        return
-    if sys.stdin.isatty():
-        run(session)
-    else:
-        show(session)  # パイプやリダイレクトのときは表示だけして終わる
-
-
-def build_generator(config: MazeConfig) -> MazeGenerator:
-    """設定の内容どおりの MazeGenerator を作る（まだ生成はしない）。
-
-    Raises:
-        MazeError: 設定では迷路を作れない場合。
-    """
-    return MazeGenerator(
+    # 迷路として作れない設定（大きさ、入口と出口の位置）なら MazeError。
+    generator = MazeGenerator(
         width=config.width,
         height=config.height,
         entry=config.entry,
         exit=config.exit,
         perfect=config.perfect,
         seed=config.seed,
-        algorithm=config.algorithm,
-        pattern=config.pattern,
     )
+    generator.generate()
+    write_maze(config.output_file, generator)
+    print(f"Maze written to {config.output_file}")
+    report_problems(generator)  # "42" を描けなかった理由と check() の結果
+
+    # 出力が端末でない（ファイルやパイプ）ときや、端末が "██" を表示でき
+    # ないときは、色を使わず ASCII で描く。
+    colour = is_terminal(sys.stdout) and can_draw_blocks(sys.stdout.encoding)
+    session = Session(generator, colour=colour)
+    if is_terminal(sys.stdin) and is_terminal(sys.stdout):
+        menu.run(session)
+    else:
+        menu.show(session)  # パイプやリダイレクトのときは表示だけして終わる
 
 
-def use_colour(config: MazeConfig) -> bool:
-    """端末表示で色を使うかを返す。
+def is_terminal(stream: Optional[TextIO]) -> bool:
+    """stream が端末につながっているかを返す。
 
-    設定で COLOR=False のとき、環境変数 NO_COLOR があるとき、出力が
-    端末でない（ファイルやパイプ）ときは色を使わない。
+    標準入出力が閉じられていると、Python はそれを None にする。
     """
-    return (
-        config.color
-        and os.environ.get("NO_COLOR") is None
-        and sys.stdout.isatty()
-    )
+    return stream is not None and stream.isatty()
 
 
-def show_window(session: Session) -> bool:
-    """MiniLibX のウィンドウで表示する。使えなければ警告して False を返す。"""
-    try:
-        show_in_window(session)
-    except MlxUnavailable as error:
-        print(f"Warning: {error}", file=sys.stderr)
-        print("Warning: falling back to the terminal rendering.",
-              file=sys.stderr)
-        return False
-    return True
+def _silence_output() -> None:
+    """出力先のパイプが先に閉じられたときに、標準出力と標準エラーを捨てる。
+
+    そのままだと、終了時に Python が出力を flush し直し、BrokenPipeError
+    の警告を出して終了ステータス 120 で終わる。/dev/null に向け直して防ぐ。
+    """
+    devnull = os.open(os.devnull, os.O_WRONLY)
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            os.dup2(devnull, stream.fileno())
+        except (AttributeError, OSError, ValueError):
+            pass  # 閉じられている（None）か、本物のファイルではない
+    os.close(devnull)
 
 
 if __name__ == "__main__":

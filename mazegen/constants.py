@@ -1,4 +1,5 @@
-"""壁のビット、向き、大きさの上限といった定数。"""
+"""壁のビット、向き、大きさの範囲、ループの数といった定数と、新しい
+シードを引く random_seed()。"""
 
 from __future__ import annotations
 
@@ -38,11 +39,15 @@ OPPOSITE: Dict[int, int] = {
 # 出力ファイルで経路を書くときの文字。
 LETTER: Dict[int, str] = {NORTH: "N", EAST: "E", SOUTH: "S", WEST: "W"}
 
-ALGORITHMS: Tuple[str, ...] = ("backtracker", "prim", "kruskal")
-
-# 迷路の一辺として認める大きさ。設定ファイルの検証も同じ値を使う。
+# 迷路の一辺として認める大きさ。MazeGenerator の引数の検証で使う。
 MIN_SIZE: int = 2
 MAX_SIZE: int = 1000
+
+# Pac-Man 盤（PERFECT=False）に必要な、独立したループの最小数。
+MIN_LOOPS: int = 2
+
+# Pac-Man 盤で許す行き止まりの数（subject は「2 つ程度までなら許容」）。
+MAX_DEAD_ENDS: int = 2
 
 # シードは 32 ビットに収める。再現用に設定ファイルへ書き写しやすい。
 SEED_LIMIT: int = 2 ** 32

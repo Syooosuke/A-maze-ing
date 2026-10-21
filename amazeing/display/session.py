@@ -1,15 +1,12 @@
-"""表示中の迷路と、表示の設定（配色、経路の表示など）を保持する。
+"""表示中の迷路と、表示の設定（配色、経路の表示）を保持する。
 
-端末のメニューと MiniLibX のウィンドウは、どちらもこの Session を
-操作する。キー入力やメニューの番号から、ここのメソッドを呼ぶだけ。
+端末のメニューは、選ばれた番号に応じてここのメソッドを呼ぶだけ。
 """
 
 from __future__ import annotations
 
 import sys
 
-from amazeing.config import MazeConfig
-from amazeing.output import OutputError, write_maze
 from amazeing.display.render import legend, render
 from amazeing.display.themes import THEMES, Theme
 from mazegen import MazeError, MazeGenerator, random_seed
@@ -18,14 +15,17 @@ from mazegen import MazeError, MazeGenerator, random_seed
 class Session:
     """表示中の迷路と、利用者が切り替えられる表示の設定。"""
 
-    def __init__(self, generator: MazeGenerator, config: MazeConfig) -> None:
-        """generate() を呼び終えた generator を表示する準備をする。"""
+    def __init__(self, generator: MazeGenerator, colour: bool) -> None:
+        """generate() を呼び終えた generator を表示する準備をする。
+
+        Args:
+            generator: 表示する迷路。
+            colour: ANSI カラーで描くかどうか。False なら ASCII 文字で描く。
+        """
         self.generator = generator
-        self.config = config
+        self.colour = colour
         self.theme_index = 0
         self.show_path = False
-        self.pattern_colour = True
-        self.colour = config.color
 
     @property
     def theme(self) -> Theme:
@@ -54,27 +54,14 @@ class Session:
         """次の配色に切り替える。最後の次は最初に戻る。"""
         self.theme_index = (self.theme_index + 1) % len(THEMES)
 
-    def toggle_pattern_colour(self) -> None:
-        """"42" を専用の色で描くか、壁と同じ色で描くかを切り替える。"""
-        self.pattern_colour = not self.pattern_colour
-
-    def save(self) -> None:
-        """いまの迷路を、設定ファイルの OUTPUT_FILE に書き出す。"""
-        path = self.config.output_file
-        try:
-            write_maze(path, self.generator)
-        except OutputError as error:
-            print(f"Error: {error}", file=sys.stderr)
-            return
-        print(f"Maze written to {path}")
-
     def status(self) -> str:
         """いまの迷路の要約を 1 行で返す（大きさ、モード、シードなど）。"""
         maze = self.generator
         mode = "perfect" if maze.perfect else "playable board"
         return (
-            f"{maze.width}x{maze.height} - {mode} - {maze.algorithm} - "
-            f"seed {maze.seed_used} - path {len(maze.solution)} cells - "
+            f"{maze.width}x{maze.height} - {mode} - "
+            f"theme {self.theme.name} - seed {maze.seed_used} - "
+            f"path {len(maze.solution)} cells - "
             f"{maze.loop_count()} loop(s) - "
             f"{len(maze.dead_ends())} dead-end(s)"
         )
@@ -86,13 +73,21 @@ class Session:
             theme=self.theme,
             show_path=self.show_path,
             colour=self.colour,
-            pattern_colour=self.pattern_colour,
         )
-        key = legend(self.theme, self.colour, self.pattern_colour)
+        key = legend(self.theme, self.colour)
         return "\n".join((picture, "", key, self.status()))
 
 
 def report_problems(generator: MazeGenerator) -> None:
-    """迷路が要件を満たしていない点があれば、警告として表示する。"""
+    """"42" を描けなかった理由と、要件を満たしていない点を表示する。
+
+    起動時と、メニューで迷路を作り直したときの両方から呼ばれる。
+    """
+    if generator.pattern_warning is not None:
+        print(
+            f"Error: {generator.pattern_warning}; "
+            "the maze is generated without it",
+            file=sys.stderr,
+        )
     for problem in generator.check():
         print(f"Warning: {problem}", file=sys.stderr)

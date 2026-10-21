@@ -5,7 +5,6 @@ CONFIG  ?= config.txt
 MAIN    := a_maze_ing.py
 ANALYZER:= maze_analyzer.py
 OUTPUT  ?= maze.txt
-MLX_TGZ := mlx-2.2.tgz
 
 # Development tools. They are not runtime dependencies: the project only
 # needs the Python standard library to run.
@@ -15,11 +14,13 @@ MYPY_FLAGS := --warn-return-any --warn-unused-ignores \
               --ignore-missing-imports --disallow-untyped-defs \
               --check-untyped-defs
 
-# Directories flake8 must not walk into. They hold no source of ours, only
-# the virtual environment and the build artefacts.
-FLAKE8_FLAGS := --extend-exclude=.venv,venv,build,dist,.mlx
+# The lint tools of the virtual environment when "make install" created it,
+# otherwise the ones on the PATH (test and build always use the venv). The directories flake8 must not walk into
+# (.venv, build, ...) are listed in .flake8, so a bare "flake8 ." works too.
+FLAKE8 := $(if $(wildcard $(BIN)/flake8),$(BIN)/flake8,flake8)
+MYPY   := $(if $(wildcard $(BIN)/mypy),$(BIN)/mypy,mypy)
 
-.PHONY: all install install-mlx run debug analyze clean fclean lint \
+.PHONY: all install run debug analyze clean fclean lint \
         lint-strict test build re help
 
 all: run
@@ -30,20 +31,7 @@ install:
 	$(BIN)/pip install --upgrade pip
 	$(BIN)/pip install $(DEV_TOOLS)
 
-## install-mlx: install the optional MiniLibX wrapper (Linux only)
-install-mlx:
-	@test -f $(MLX_TGZ) || { \
-	    echo "$(MLX_TGZ) not found: copy it from the subject."; exit 1; }
-	@rm -rf .mlx && mkdir -p .mlx && tar xzf $(MLX_TGZ) -C .mlx
-	@set -e; \
-	if [ -f /etc/fedora-release ]; then flavour=fedora; else flavour=ubuntu; fi; \
-	echo "Installing the $$flavour MiniLibX wheel..."; \
-	$(BIN)/pip install --force-reinstall \
-	    .mlx/$$flavour/mlx-2.2-py3-none-any.whl
-	@rm -rf .mlx
-	@echo "Now set DISPLAY=mlx in $(CONFIG) to open a graphical window."
-
-## run: generate and display a maze from $(CONFIG)
+## run: generate and display a maze (CONFIG=config.txt by default)
 run:
 	$(PYTHON) $(MAIN) $(CONFIG)
 
@@ -51,22 +39,22 @@ run:
 debug:
 	$(PYTHON) -m pdb $(MAIN) $(CONFIG)
 
-## analyze: check $(OUTPUT) with the analysis script of the subject
+## analyze: check the output maze (OUTPUT=maze.txt) with maze_analyzer.py
 analyze:
 	@test -f $(ANALYZER) || { \
 	    echo "$(ANALYZER) not found: copy it from the subject."; exit 1; }
 	@$(PYTHON) $(MAIN) $(CONFIG) < /dev/null > /dev/null
-	$(PYTHON) $(ANALYZER) $(OUTPUT) --max-dead-ends 0
+	$(PYTHON) $(ANALYZER) $(OUTPUT)
 
 ## lint: flake8 + mypy with the flags required by the subject
 lint:
-	$(BIN)/flake8 . $(FLAKE8_FLAGS)
-	$(BIN)/mypy . $(MYPY_FLAGS)
+	$(FLAKE8) .
+	$(MYPY) . $(MYPY_FLAGS)
 
 ## lint-strict: flake8 + mypy in strict mode
 lint-strict:
-	$(BIN)/flake8 . $(FLAKE8_FLAGS)
-	$(BIN)/mypy . --strict
+	$(FLAKE8) .
+	$(MYPY) . --strict
 
 ## test: run the unit tests (tests/ is not part of the submission)
 test:
@@ -84,7 +72,7 @@ build:
 clean:
 	find . -path ./.venv -prune -o -name __pycache__ -type d -prune \
 	    -exec rm -rf {} +
-	rm -rf .mypy_cache .pytest_cache .mlx
+	rm -rf .mypy_cache .pytest_cache
 	rm -rf build dist *.egg-info
 	find . -name '*.py[co]' -delete
 

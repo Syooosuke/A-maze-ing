@@ -26,8 +26,3 @@ packages = ["mazegen", "mazegen.generation", "mazegen.analysis"]
 [tool.mypy]
 python_version = "3.10"
 exclude = ["build/", "\\.venv/"]
-
-# The MiniLibX wrapper is an optional, untyped, Linux-only dependency.
-[[tool.mypy.overrides]]
-module = ["mlx", "mlx.*"]
-ignore_missing_imports = true
