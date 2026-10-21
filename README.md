@@ -431,7 +431,8 @@ unnoticed.
 │       ├── themes.py                 # colour themes
 │       ├── render.py                 # canvas -> terminal text
 │       ├── session.py                # displayed maze and display options
-│       └── menu.py                   # interactive terminal menu
+│       ├── menu.py                   # interactive terminal menu
+│       └── terminal.py               # is it a terminal, colour reset, ...
 ├── config.txt                        # default configuration
 ├── pyproject.toml                    # package build configuration
 ├── Makefile

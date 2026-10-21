@@ -47,7 +47,7 @@ def read_pairs(path: str) -> Dict[str, str]:
             known = ", ".join(KNOWN_KEYS)
             raise ConfigError(f"{where}: unknown key {key!r} (known: {known})")
         if key in pairs:
-            raise ConfigError(f"{where}: {key} is defined twice")
+            raise ConfigError(f"{where}: {key!r} is defined twice")
         pairs[key] = raw_value.strip()
     return pairs
 
@@ -60,10 +60,12 @@ def _read_lines(path: str) -> List[str]:
     except FileNotFoundError:
         raise ConfigError(f"configuration file {path!r} not found") from None
     except IsADirectoryError:
-        raise ConfigError(f"{path!r} is a directory, not a file") from None
+        raise ConfigError(
+            f"configuration file {path!r} is a directory, not a file"
+        ) from None
     except PermissionError:
         raise ConfigError(f"no permission to read {path!r}") from None
     except UnicodeDecodeError:
         raise ConfigError(f"{path!r} is not a readable text file") from None
     except OSError as error:
-        raise ConfigError(f"cannot read {path!r}: {error}") from None
+        raise ConfigError(f"cannot read {path!r}: {error.strerror}") from None

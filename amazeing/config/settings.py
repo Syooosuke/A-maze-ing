@@ -55,15 +55,19 @@ def load_config(path: str) -> MazeConfig:
             f"{path}: missing mandatory key(s): {', '.join(missing)}"
         )
 
-    seed = None
-    if "SEED" in pairs:
-        seed = parse_int("SEED", pairs["SEED"])
-    return MazeConfig(
-        width=parse_positive_int("WIDTH", pairs["WIDTH"]),
-        height=parse_positive_int("HEIGHT", pairs["HEIGHT"]),
-        entry=parse_coord("ENTRY", pairs["ENTRY"]),
-        exit=parse_coord("EXIT", pairs["EXIT"]),
-        output_file=parse_path("OUTPUT_FILE", pairs["OUTPUT_FILE"]),
-        perfect=parse_bool("PERFECT", pairs["PERFECT"]),
-        seed=seed,
-    )
+    try:
+        seed = None
+        if "SEED" in pairs:
+            seed = parse_int("SEED", pairs["SEED"])
+        return MazeConfig(
+            width=parse_positive_int("WIDTH", pairs["WIDTH"]),
+            height=parse_positive_int("HEIGHT", pairs["HEIGHT"]),
+            entry=parse_coord("ENTRY", pairs["ENTRY"]),
+            exit=parse_coord("EXIT", pairs["EXIT"]),
+            output_file=parse_path("OUTPUT_FILE", pairs["OUTPUT_FILE"]),
+            perfect=parse_bool("PERFECT", pairs["PERFECT"]),
+            seed=seed,
+        )
+    except ConfigError as error:
+        # どのファイルの値か分かるよう、書式の誤りと同じくファイル名を付ける。
+        raise ConfigError(f"{path}: {error}") from None

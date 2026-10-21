@@ -1,4 +1,4 @@
-"""「42」 のパターンを、迷路のどこに置くかを決める。"""
+"""「42」のパターンを、迷路のどこに置くかを決める。"""
 
 from __future__ import annotations
 
@@ -31,7 +31,7 @@ def landmarks(width: int, height: int) -> Dict[str, Coord]:
 def place_pattern(
     width: int, height: int, reserved: Set[Coord], rng: random.Random
 ) -> Tuple[Set[Coord], Optional[str]]:
-    """「42」 のパターンを置くセルを決める。
+    """「42」のパターンを置くセルを決める。
 
     外周から 1 セル空けて置き、reserved（入口、出口、四隅、中央）は
     パターンで塞がない。
@@ -62,7 +62,7 @@ def place_pattern(
 def _find_position(
     width: int, height: int, reserved: Set[Coord], rng: random.Random
 ) -> Optional[Set[Coord]]:
-    """「42」 を置ける位置を探し、置いたときのセルを返す。
+    """「42」を置ける位置を探し、置いたときのセルを返す。
 
     reserved のセルは塞がず、置いた後も残りのセルがすべてつながって
     いる必要がある。まず中央を試し、だめならランダムな位置をいくつか

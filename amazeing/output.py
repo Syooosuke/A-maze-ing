@@ -45,15 +45,24 @@ def write_maze(path: str, generator: MazeGenerator) -> None:
     try:
         with open(path, "w", encoding="utf-8") as stream:
             stream.write(payload)
+    # どのキーを直せばよいか分かるよう、メッセージは OUTPUT_FILE で始める。
     except IsADirectoryError:
-        raise OutputError(f"{path!r} is a directory, not a file") from None
+        raise OutputError(
+            f"OUTPUT_FILE: {path!r} is a directory, not a file"
+        ) from None
     except PermissionError:
-        raise OutputError(f"no permission to write {path!r}") from None
+        raise OutputError(
+            f"OUTPUT_FILE: no permission to write {path!r}"
+        ) from None
     except FileNotFoundError:
         raise OutputError(
-            f"the directory of {path!r} does not exist"
+            f"OUTPUT_FILE: the directory of {path!r} does not exist"
         ) from None
     except OSError as error:
-        raise OutputError(f"cannot write {path!r}: {error}") from None
+        raise OutputError(
+            f"OUTPUT_FILE: cannot write {path!r}: {error.strerror}"
+        ) from None
     except ValueError:  # ファイル名に NUL 文字が含まれているなど
-        raise OutputError(f"{path!r} is not a valid file name") from None
+        raise OutputError(
+            f"OUTPUT_FILE: {path!r} is not a valid file name"
+        ) from None
