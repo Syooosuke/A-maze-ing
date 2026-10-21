@@ -39,7 +39,7 @@ class MazeGenerator:
         Raises:
             MazeError: 条件では迷路を作れない場合。
         """
-        check_types(width, height, entry, exit)
+        check_types(width, height, entry, exit, perfect, seed)
         exit = (width - 1, height - 1) if exit is None else exit
         check_arguments(width, height, entry, exit, perfect)
         self.width = width
