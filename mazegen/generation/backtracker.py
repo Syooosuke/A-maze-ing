@@ -12,7 +12,7 @@
 from __future__ import annotations
 
 import random
-from typing import List, Set
+from typing import List, Set, Tuple
 
 from ..constants import DIRECTIONS, Coord
 from ..grid import Grid
@@ -32,7 +32,8 @@ def carve_backtracker(
     stack: List[Coord] = [start]
     while stack:
         cell = stack[-1]
-        unvisited = []
+        # まだ訪れていない隣の通路と、そこへ向かう向きの組。
+        unvisited: List[Tuple[int, Coord]] = []
         for direction in DIRECTIONS:
             other = grid.neighbour(cell, direction)
             if other in corridors and other not in visited:

@@ -64,6 +64,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         print("\nInterrupted.", file=sys.stderr)
         return 1
     except Exception as error:  # 想定外のエラーでもトレースバックは出さない
+        reset_colour()
         print(f"Error: unexpected failure: {error}", file=sys.stderr)
         return 1
     return 0

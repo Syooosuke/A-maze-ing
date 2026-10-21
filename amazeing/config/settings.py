@@ -56,7 +56,7 @@ def load_config(path: str) -> MazeConfig:
         )
 
     try:
-        seed = None
+        seed: Optional[int] = None
         if "SEED" in pairs:
             seed = parse_int("SEED", pairs["SEED"])
         return MazeConfig(

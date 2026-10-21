@@ -57,8 +57,8 @@ class MazeGenerator:
         self.pattern_cells: Set[Coord] = set()
         self.pattern_warning: Optional[str] = None
         self.solution: List[Coord] = []
-        self.directions = ""
-        self.seed_used = 0
+        self.directions: str = ""
+        self.seed_used: int = 0
         # パターン以外のセル。通路として掘る対象で、左上から行ごとに並ぶ。
         self._region: List[Coord] = []
 
