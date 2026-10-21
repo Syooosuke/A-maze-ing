@@ -94,9 +94,9 @@ def creates_3x3_area(grid: Grid, cell: Coord, direction: int) -> bool:
     other_x, other_y = grid.neighbour(cell, direction)
     # 2 つのセルを両方とも含む 3x3 区画の、左上の角になりうる範囲。
     first_x = max(0, max(x, other_x) - 2)
-    last_x = min(min(x, other_x), grid.width - 3)
+    last_x = min(x, other_x, grid.width - 3)
     first_y = max(0, max(y, other_y) - 2)
-    last_y = min(min(y, other_y), grid.height - 3)
+    last_y = min(y, other_y, grid.height - 3)
 
     grid.open_wall(cell, direction)
     found = any(

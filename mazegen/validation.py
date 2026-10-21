@@ -2,25 +2,24 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 from .constants import MAX_SIZE, MIN_LOOPS, MIN_SIZE, Coord
 from .errors import MazeError
 
 
 def check_types(
-    width: int, height: int, entry: Coord, exit: Optional[Coord]
+    width: object, height: object, entry: object, exit: object
 ) -> None:
     """引数の型が違えば MazeError を送出する（"20" や [0, 0] など）。
 
-    型の誤りも、ほかの誤りと同じ MazeError で知らせるため。exit は省略
-    （None）してよい。
+    型の誤りも、ほかの誤りと同じ MazeError で知らせるため。引数は実行時に
+    何が来てもよいよう object で受ける。exit は省略（None）してよい。
     """
     if not _is_int(width) or not _is_int(height):
         raise MazeError("width and height must be integers")
-    for label, cell in (("ENTRY", entry), ("EXIT", exit)):
-        if label == "EXIT" and cell is None:
-            continue
+    pairs = [("ENTRY", entry)]
+    if exit is not None:
+        pairs.append(("EXIT", exit))
+    for label, cell in pairs:
         if not (
             isinstance(cell, tuple) and len(cell) == 2
             and _is_int(cell[0]) and _is_int(cell[1])

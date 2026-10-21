@@ -7,7 +7,7 @@
 from __future__ import annotations
 
 import random
-from typing import Dict, Tuple
+from typing import Dict, Tuple, TypeAlias
 
 # セル 1 つの壁は 4 ビットで表す。ビットが 1 なら、その向きの壁が閉じている。
 NORTH: int = 1
@@ -21,7 +21,7 @@ ALL_WALLS: int = NORTH | EAST | SOUTH | WEST
 DIRECTIONS: Tuple[int, ...] = (NORTH, EAST, SOUTH, WEST)
 
 # 座標は (x, y)。x は右へ、y は下へ増える。
-Coord = Tuple[int, int]
+Coord: TypeAlias = Tuple[int, int]
 
 # その向きへ 1 歩進んだときの (dx, dy)。
 DELTA: Dict[int, Coord] = {
