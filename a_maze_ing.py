@@ -17,14 +17,18 @@
 
 from __future__ import annotations
 
-import os
 import sys
-from typing import List, Optional, TextIO
+from typing import List, Optional
 
 from amazeing.config import ConfigError, load_config
 from amazeing.display import menu
 from amazeing.display.render import can_draw_blocks
 from amazeing.display.session import Session, report_problems
+from amazeing.display.terminal import (
+    is_terminal,
+    reset_colour,
+    silence_output,
+)
 from amazeing.output import OutputError, write_maze
 from mazegen import MazeError, MazeGenerator
 
@@ -49,12 +53,14 @@ def main(argv: Optional[List[str]] = None) -> int:
         if sys.stdout is not None:
             sys.stdout.flush()  # 書き出しの失敗を、ここで捕まえるため
     except BrokenPipeError:
-        _silence_output()
+        silence_output()
         return 1
     except (ConfigError, MazeError, OutputError, OSError) as error:
+        reset_colour()
         print(f"Error: {error}", file=sys.stderr)
         return 1
     except KeyboardInterrupt:
+        reset_colour()
         print("\nInterrupted.", file=sys.stderr)
         return 1
     except Exception as error:  # 想定外のエラーでもトレースバックは出さない
@@ -88,31 +94,6 @@ def run_program(config_path: str) -> None:
         menu.run(session)
     else:
         menu.show(session)  # パイプやリダイレクトのときは表示だけして終わる
-
-
-def is_terminal(stream: Optional[TextIO]) -> bool:
-    """stream が端末につながっているかを返す。
-
-    標準入出力が閉じられていると、Python はそれを None にする。
-    """
-    return stream is not None and stream.isatty()
-
-
-def _silence_output() -> None:
-    """出力先のパイプが先に閉じられたときに、標準出力と標準エラーを捨てる。
-
-    そのままだと、終了時に Python が出力を flush し直し、BrokenPipeError
-    の警告を出して終了ステータス 120 で終わる。/dev/null に向け直して防ぐ。
-    """
-    devnull = os.open(os.devnull, os.O_WRONLY)
-    try:
-        for stream in (sys.stdout, sys.stderr):
-            try:
-                os.dup2(devnull, stream.fileno())
-            except (AttributeError, OSError, ValueError):
-                pass  # 閉じられている（None）か、本物のファイルではない
-    finally:
-        os.close(devnull)
 
 
 if __name__ == "__main__":

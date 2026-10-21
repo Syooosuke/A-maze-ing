@@ -22,7 +22,7 @@ def parse_positive_int(key: str, raw: str) -> int:
     """1 以上の整数に変換する。"""
     value = parse_int(key, raw)
     if value <= 0:
-        raise ConfigError(f"{key}: {value} must be strictly positive")
+        raise ConfigError(f"{key}: {raw!r} must be strictly positive")
     return value
 
 
@@ -37,7 +37,7 @@ def parse_bool(key: str, raw: str) -> bool:
 
 
 def parse_coord(key: str, raw: str) -> Tuple[int, int]:
-    """「x,y」 を座標 (x, y) に変換する。負の座標は認めない。"""
+    """「x,y」を座標 (x, y) に変換する。負の座標は認めない。"""
     parts = raw.split(",")
     if len(parts) != 2:
         raise ConfigError(f"{key}: {raw!r} is not a 'x,y' pair of coordinates")

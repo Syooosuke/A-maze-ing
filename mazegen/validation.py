@@ -43,10 +43,10 @@ def check_arguments(
     for label, (x, y) in (("ENTRY", entry), ("EXIT", exit)):
         if not (0 <= x < width and 0 <= y < height):
             raise MazeError(
-                f"{label} {x},{y} is outside the {width}x{height} maze"
+                f"{label}: {x},{y} is outside the {width}x{height} maze"
             )
     if entry == exit:
-        raise MazeError("entry and exit must be different cells")
+        raise MazeError("ENTRY and EXIT must be different cells")
     # 2x2 の格子には壁が 4 枚しかなく、ループは最大 1 つしか作れない。
     # Pac-Man 盤（PERFECT=False）は独立したループを MIN_LOOPS 個以上必要とする。
     if not perfect and width == 2 and height == 2:

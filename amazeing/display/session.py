@@ -79,11 +79,13 @@ class Session:
 
 
 def report_problems(generator: MazeGenerator) -> None:
-    """「42」 を描けなかった理由と、要件を満たしていない点を表示する。
+    """「42」を描けなかった理由と、要件を満たしていない点を表示する。
 
     起動時と、メニューで迷路を作り直したときの両方から呼ばれる。
     """
     if generator.pattern_warning is not None:
+        # subject が「エラーメッセージを表示する」と書いているので Error とする。
+        # 迷路そのものは作れているので、終了ステータスは 0 のまま。
         print(
             f"Error: {generator.pattern_warning}; "
             "the maze is generated without it",

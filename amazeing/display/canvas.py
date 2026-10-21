@@ -80,7 +80,7 @@ class Canvas:
                         break
 
     def paint_pattern(self) -> None:
-        """「42」 のセルを、壁と角のマスも含めた 3x3 ごと PATTERN で塗る。"""
+        """「42」のセルを、壁と角のマスも含めた 3x3 ごと PATTERN で塗る。"""
         for x, y in self.generator.pattern_cells:
             for row in range(2 * y, 2 * y + 3):
                 for col in range(2 * x, 2 * x + 3):

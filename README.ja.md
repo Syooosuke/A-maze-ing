@@ -437,7 +437,8 @@ AI をブラックボックスとして使うことは **しませんでした**
 │       ├── themes.py                 # 配色テーマ
 │       ├── render.py                 # キャンバス -> 端末の文字列
 │       ├── session.py                # 表示中の迷路と表示設定
-│       └── menu.py                   # 端末の対話メニュー
+│       ├── menu.py                   # 端末の対話メニュー
+│       └── terminal.py               # 端末かどうかの判定、色のリセットなど
 ├── config.txt                        # 既定の設定
 ├── pyproject.toml                    # パッケージのビルド設定
 ├── Makefile
