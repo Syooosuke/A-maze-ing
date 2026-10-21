@@ -12,7 +12,7 @@ class OutputError(Exception):
 
 
 def build_lines(generator: MazeGenerator) -> List[str]:
-    """出力ファイルの内容を 1 行ずつそのまま組み立てる。
+    """出力ファイルの内容を、1 行ずつのリストとして組み立てる。
 
     並びは subject が指定するとおり。格子の 1 行をファイルの 1 行にし
     （1 セルにつき 16 進数 1 桁）、空行のあとに入口、出口、最短経路が続く。
@@ -42,10 +42,11 @@ def write_maze(path: str, generator: MazeGenerator) -> None:
         OutputError: ファイルを書き出せない場合。
     """
     payload = "".join(f"{line}\n" for line in build_lines(generator))
+    # どのキーを直せばよいか分かるよう、エラーのメッセージは OUTPUT_FILE で
+    # 始める。
     try:
         with open(path, "w", encoding="utf-8") as stream:
             stream.write(payload)
-    # どのキーを直せばよいか分かるよう、メッセージは OUTPUT_FILE で始める。
     except IsADirectoryError:
         raise OutputError(
             f"OUTPUT_FILE: {path!r} is a directory, not a file"

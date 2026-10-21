@@ -18,7 +18,7 @@ def is_terminal(stream: Optional[TextIO]) -> bool:
 
 
 def reset_colour() -> None:
-    """色付きの描画の途中で止まっても、端末の色を元に戻す。"""
+    """色付きの描画の途中で止まったときに、端末の色を元に戻す。"""
     if is_terminal(sys.stdout):
         try:
             sys.stdout.write(RESET)

@@ -77,8 +77,8 @@ def _find_position(
     max_top = height - PATTERN_HEIGHT - 1
     # "42" を真ん中に置くときの左上の角（予約された中央のセルとは別物）。
     centre = ((width - PATTERN_WIDTH) // 2, (height - PATTERN_HEIGHT) // 2)
-    # 乱数は先にまとめて引いておく。どこで見つかっても、乱数の消費量が
-    # 同じになり、後に続く迷路の生成が安定する。
+    # 乱数は先にまとめて引いておく。どこで見つかっても乱数の消費量が同じに
+    # なるので、同じシードなら、置き場所に関係なく後の生成に同じ乱数列が使われる。
     randoms = [
         (rng.randint(1, max_left), rng.randint(1, max_top))
         for _ in range(RANDOM_ATTEMPTS)

@@ -3,7 +3,7 @@
 ## Why this license
 
 The `mazegen` module of this repository is meant to be picked up and reused
-by later projects (a Pac-Man like game, among others).  A permissive license
+by later projects (a Pac-Man-like game, among others).  A permissive license
 is therefore the right choice: it lets anyone copy, modify, embed and
 redistribute the generator — including inside a closed-source project — as
 long as the original copyright notice travels with the code.  The MIT

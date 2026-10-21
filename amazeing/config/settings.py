@@ -1,4 +1,4 @@
-"""設定ファイルを読み込み、値の形式を確かめた MazeConfig を作る。
+"""設定ファイルを読み込み、値の形式を確認した MazeConfig を作る。
 
 読み取りは reader.py、値の変換は values.py が受け持つ。ここでは両者を
 組み合わせるだけ。迷路として作れるか（大きさ、入口と出口の位置）は
@@ -22,7 +22,7 @@ from amazeing.config.values import (
 
 @dataclass(frozen=True)
 class MazeConfig:
-    """値の形式を確かめ済みの設定。迷路として作れるかは MazeGenerator が確かめる。
+    """値の形式を確認済みの設定。迷路として作れるかは MazeGenerator が確かめる。
 
     Attributes:
         width, height: 迷路の列数と行数。
