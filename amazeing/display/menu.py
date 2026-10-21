@@ -12,7 +12,8 @@ MENU = (
     "3. Rotate the wall colours",
     "4. Quit",
 )
-QUIT_WORDS = ("4", "q", "quit")
+# 終了の番号はメニューの最後の項目。項目を足しても自動でずれる。
+QUIT_WORDS = (str(len(MENU)), "q", "quit")
 
 
 def show(session: Session) -> None:

@@ -15,8 +15,9 @@ MYPY_FLAGS := --warn-return-any --warn-unused-ignores \
               --check-untyped-defs
 
 # The lint tools of the virtual environment when "make install" created it,
-# otherwise the ones on the PATH (test and build always use the venv). The directories flake8 must not walk into
-# (.venv, build, ...) are listed in .flake8, so a bare "flake8 ." works too.
+# otherwise the ones on the PATH (test and build always use the venv).
+# The directories flake8 must not walk into (.venv, build, ...) are listed
+# in .flake8, so a bare "flake8 ." works too.
 FLAKE8 := $(if $(wildcard $(BIN)/flake8),$(BIN)/flake8,flake8)
 MYPY   := $(if $(wildcard $(BIN)/mypy),$(BIN)/mypy,mypy)
 
@@ -74,7 +75,7 @@ clean:
 	    -exec rm -rf {} +
 	rm -rf .mypy_cache .pytest_cache
 	rm -rf build dist *.egg-info
-	find . -name '*.py[co]' -delete
+	find . -path ./.venv -prune -o -name '*.py[co]' -delete
 
 ## fclean: clean, and also drop the virtual environment and the output maze
 fclean: clean

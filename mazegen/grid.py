@@ -77,7 +77,8 @@ class Grid:
     def is_block_open(self, x: int, y: int, width: int, height: int) -> bool:
         """(x, y) を左上とする width x height の区画に、内側の壁がないかを返す。
 
-        区画の外周の壁は見ない。区画が格子からはみ出すなら False。
+        区画の外周の壁は見ない。x, y は 0 以上であること。区画が格子の
+        右端や下端からはみ出すなら False。
         """
         if x + width > self.width or y + height > self.height:
             return False

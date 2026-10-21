@@ -7,10 +7,10 @@
 
 処理の流れ:
     1. 設定ファイルを読む（amazeing.config）
-    2. 迷路を生成し、要件を自己検査した結果を表示する
-       （mazegen.MazeGenerator.check() を display.session.report_problems
+    2. 迷路を生成する（mazegen.MazeGenerator）
+    3. OUTPUT_FILE に書き出し（amazeing.output）、要件を自己検査した結果を
+       表示する（MazeGenerator.check() を display.session.report_problems
        から呼ぶ。作り直したときも同じ関数を使うので display にある）
-    3. OUTPUT_FILE に書き出す（amazeing.output）
     4. 端末に表示する。入力も出力も端末なら対話メニューを開く
        （amazeing.display）
 """
