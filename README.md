@@ -2,7 +2,6 @@
 
 **English** | [日本語](README.ja.md)
 
-
 # A-Maze-ing
 
 ## Description
@@ -438,8 +437,6 @@ Classic references used while working on this project:
 
 ### How AI was used
 
-<!-- TODO: adjust this section so that it describes what YOU actually did. -->
-
 AI (Claude) was used as a pair-programming assistant, on the following
 tasks:
 
@@ -506,15 +503,12 @@ that come *with* the subject rather than from us: `maze_analyzer.py` and
 
 ## Team and project management
 
-<!-- TODO: this section must describe YOUR team and YOUR planning. -->
-
 ### Roles
 
 | Member     | Role                                                        |
 | ---------- | ----------------------------------------------------------- |
 | `atajima` | *generation algorithms and the reusable module*       |
 | `syokota` | *configuration parsing, output file, error handling*  |
-
 
 ### Anticipated planning, and how it evolved
 
@@ -523,6 +517,9 @@ that come *with* the subject rather than from us: `maze_analyzer.py` and
 | 1    | Config parsing and error handling         | Done first, as planned. The same range checks (size, entry/exit) were later repeated in `MazeGenerator` so that the module stays safe when used without the config file. |
 | 2    | Perfect maze generation + output file     | Started with the recursive backtracker only. Prim and Kruskal were added afterwards as a bonus, once `check()` could verify every algorithm automatically. |
 | 3    | “42” pattern                              | Took longer than planned: the first 3×5 font left one-cell pockets that the braiding could not open. Replaced by a 4×7 font that scales with the grid, placed so that the rest of the maze stays connected. |
+| 4    | Braiding for the Pac-Man mode             | Done after the perfect maze, as planned. Braiding removes every dead-end (the no-dead-end bonus) and only opens a wall when no 3×3 open area appears; a final pass guarantees at least two loops. The subject's `maze_analyzer.py` was wired into the tests to confirm it. |
+| 5    | Terminal rendering and menu               | The terminal renderer and its menu were done as planned. A MiniLibX window was added as an option, sharing the same canvas and colour themes; as the subject's wheels are Linux-only, it falls back to the terminal when `mlx` is unavailable. |
+| 6    | Packaging, README, licence                | The wheel, the MIT licence and the README came last, as planned. After that, the code was cleaned up for readability, a Japanese README was added, and `mazegen.py` was split into a layered package without changing its public API. |
 
 ### What worked well, what could be improved
 
