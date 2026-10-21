@@ -14,7 +14,10 @@ RANDOM_ATTEMPTS = 25
 
 
 def landmarks(width: int, height: int) -> Dict[str, Coord]:
-    """Pac-Man 盤で必ず通路にしておく、四隅と中央のセルを返す。"""
+    """四隅と中央のセルを返す。"42" はどちらのモードでもここを塞がない。
+
+    Pac-Man 盤の要件（四隅と中央は通路）のため。
+    """
     return {
         "north-west corner": (0, 0),
         "north-east corner": (width - 1, 0),
@@ -62,7 +65,7 @@ def _find_position(
     いる必要がある。まず中央を試し、だめならランダムな位置をいくつか
     試す。見つからなければ None。
 
-    幅が偶数だと、中央のセル（reserved）が "2" の横棒に重なるので、
+    幅が偶数だと、中央のセル（reserved）が "2" の線に重なるので、
     中央には置けずランダムな位置になる。
     """
     shape = pattern_shape()

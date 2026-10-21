@@ -7,7 +7,7 @@ from typing import List, Optional, Set
 
 from .analysis import routes
 from .analysis.verify import find_problems
-from .constants import Coord, random_seed
+from .constants import MIN_LOOPS, Coord, random_seed
 from .errors import MazeError
 from .grid import Grid
 from .generation import braiding
@@ -92,7 +92,7 @@ class MazeGenerator:
         # 3. Pac-Man 盤なら、行き止まりをなくしてループを 2 つ以上にする。
         if not self.perfect:
             braiding.remove_dead_ends(self._grid, self._region, rng)
-            braiding.add_loops(self._grid, self._region, rng, target=2)
+            braiding.add_loops(self._grid, self._region, rng, MIN_LOOPS)
 
         # 4. 入口から出口までの最短経路を求める。
         self.solution = routes.solve(self._grid, self.entry, self.exit)

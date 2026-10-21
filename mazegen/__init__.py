@@ -16,7 +16,7 @@
 
 主なコンストラクタ引数: width/height（格子の大きさ、2 以上）、
 entry/exit（入口と出口の座標。exit の既定値は右下）、perfect（True
-なら経路が 1 本の完全迷路、False ならループのある編み込み盤）、seed
+なら経路が 1 本の完全迷路、False ならループのある Pac-Man 盤）、seed
 （再現用のシード）。
 
 generate() を呼んだ後は、grid（各セルの壁ビットマスク。NORTH=1,

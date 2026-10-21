@@ -27,7 +27,7 @@ class Theme:
     exit: int
 
 
-# メニューの「壁の色を変える」で、この順に切り替わる。
+# メニューの 3（Rotate the wall colours）で、この順に切り替わる。
 THEMES: Tuple[Theme, ...] = (
     Theme("classic", wall=250, pattern=189, path=51, entry=201, exit=196),
     Theme("amber", wall=214, pattern=229, path=45, entry=201, exit=196),

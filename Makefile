@@ -31,7 +31,7 @@ install:
 	$(BIN)/pip install --upgrade pip
 	$(BIN)/pip install $(DEV_TOOLS)
 
-## run: generate and display a maze from $(CONFIG)
+## run: generate and display a maze (CONFIG=config.txt by default)
 run:
 	$(PYTHON) $(MAIN) $(CONFIG)
 
@@ -39,7 +39,7 @@ run:
 debug:
 	$(PYTHON) -m pdb $(MAIN) $(CONFIG)
 
-## analyze: check $(OUTPUT) with the analysis script of the subject
+## analyze: check the output maze (OUTPUT=maze.txt) with maze_analyzer.py
 analyze:
 	@test -f $(ANALYZER) || { \
 	    echo "$(ANALYZER) not found: copy it from the subject."; exit 1; }

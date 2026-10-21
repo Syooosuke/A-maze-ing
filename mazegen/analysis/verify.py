@@ -5,7 +5,9 @@ from __future__ import annotations
 from typing import List, Set
 
 from .routes import count_components, dead_ends, loop_count
-from ..constants import ALL_WALLS, EAST, NORTH, OPPOSITE, SOUTH, WEST, Coord
+from ..constants import (
+    ALL_WALLS, EAST, MIN_LOOPS, NORTH, OPPOSITE, SOUTH, WEST, Coord,
+)
 from ..grid import Grid
 from ..generation.pattern import landmarks
 
@@ -100,9 +102,9 @@ def _check_playable(
 ) -> List[str]:
     """Pac-Man 盤（PERFECT=False）にだけ求められる規則を確かめる。"""
     problems: List[str] = []
-    if loop_count(grid, region) < 2:
+    if loop_count(grid, region) < MIN_LOOPS:
         problems.append(
-            "a playable board needs at least two independent routes"
+            f"a playable board needs at least {MIN_LOOPS} independent loops"
         )
     for name, cell in landmarks(grid.width, grid.height).items():
         if cell in pattern_cells or grid.degree(cell) == 0:

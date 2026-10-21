@@ -84,6 +84,10 @@ def report_problems(generator: MazeGenerator) -> None:
     起動時と、メニューで迷路を作り直したときの両方から呼ばれる。
     """
     if generator.pattern_warning is not None:
-        print(f"Error: {generator.pattern_warning}", file=sys.stderr)
+        print(
+            f"Error: {generator.pattern_warning}; "
+            "the maze is generated without it",
+            file=sys.stderr,
+        )
     for problem in generator.check():
         print(f"Warning: {problem}", file=sys.stderr)

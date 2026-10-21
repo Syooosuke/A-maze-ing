@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from itertools import groupby
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from amazeing.display.canvas import Token, draw_maze
 from amazeing.display.themes import THEMES, Theme
@@ -22,6 +22,15 @@ ASCII: Dict[Token, str] = {
 # 色を使うときは、どのマスもこのブロック文字を色付けして描く。
 BLOCK = "██"
 RESET = "\x1b[0m"
+
+
+def can_draw_blocks(encoding: Optional[str]) -> bool:
+    """その文字コードの端末で BLOCK を表示できるかを返す。"""
+    try:
+        BLOCK.encode(encoding or "ascii")
+    except (UnicodeEncodeError, LookupError):
+        return False
+    return True
 
 
 def colour_of(token: Token, theme: Theme) -> int:
@@ -45,6 +54,7 @@ def swatch(token: Token, theme: Theme, colour: bool, count: int = 1) -> str:
     if not colour or token is Token.VOID:
         return ASCII[token] * count
     code = colour_of(token, theme)
+    # \x1b[38;5;<番号>m は、文字色を 256 色の <番号> にする ANSI コード。
     return f"\x1b[38;5;{code}m{BLOCK * count}{RESET}"
 
 

@@ -15,9 +15,9 @@ Two very different kinds of maze can be produced from the same grid:
 * `PERFECT=True` — a **perfect maze**: exactly one path between the entry
   and the exit, no loop anywhere. This is the classic lab maze.
 * `PERFECT=False` (the value in `config.txt`) — a **playable Pac-Man
-  board**: every corridor reachable, the four corners and the centre open, at least two
-  independent routes, and dead-ends removed, so a chased player always has
-  an alternative.
+  board**: every corridor reachable, the four corners and the centre
+  open, at least two independent loops, and dead-ends removed, so a chased
+  player always has an alternative.
 
 In both modes a **“42”** is drawn inside the maze with fully closed
 cells, and the shortest path from the entry to the exit is computed and
@@ -68,6 +68,9 @@ make analyze
 # Remove caches, build artefacts, then also the venv and maze.txt
 make clean
 make fclean
+
+# List the rules of the Makefile
+make help
 ```
 
 ### Interactive menu
@@ -178,20 +181,22 @@ The generation runs in four stages:
 
 1. **Place the “42”.** The digits are drawn from a 4×7 bitmap font (9×7
    cells in all), never touching the border, never covering the entry, the
-   exit, a corner or the centre. The chosen placement must leave every remaining cell connected.
-   Those cells stay at `F`, fully closed, and the maze is simply carved
+   exit, a corner or the centre. The chosen placement must leave every
+   remaining cell connected. Those cells stay at `F`, fully closed, and the maze is simply carved
    *around* them. If the maze is too small to hold the pattern (less than
    11×9 cells), or if the entry and the exit leave no room for it, it is
    skipped and an error message is printed on the console.
 2. **Carve a spanning tree** over every cell outside the pattern with the
-   recursive backtracker. At this point the maze is perfect, and the work is
-   over when `PERFECT=True`.
+   recursive backtracker. At this point the maze is perfect; when
+   `PERFECT=True`, stage 3 is skipped. A tree has no loop, so it cannot
+   contain a fully open 3×3 (or even 2×2) area.
 3. **Braid** (only when `PERFECT=False`): while a cell has a single open
-   wall, open one more of its walls. A wall is only opened if it does not
-   create a 3×3 fully open area, so corridors never get wider than two
-   cells. This keeps dead-ends rare, as the subject requires.
-4. **Guarantee at least two loops** and **solve** the maze with a
-   breadth-first search, which yields a genuinely *shortest* path.
+   wall, open one more of its walls, then open extra walls until there are
+   at least two loops. A wall is only opened if it does not create a 3×3
+   fully open area, so corridors never get wider than two cells. This keeps
+   dead-ends rare, as the subject requires.
+4. **Solve** the maze with a breadth-first search, which yields a genuinely
+   *shortest* path.
 
 ### Why this one
 
@@ -314,7 +319,7 @@ gen.directions        # the same path as "ESSEEN..." letters
 
 gen.to_hex_lines()    # ['9155...', ...] one hex digit per cell
 gen.dead_ends()       # cells with a single open wall
-gen.loop_count()      # number of independent routes
+gen.loop_count()      # number of independent loops
 gen.check()           # [] when the maze meets every requirement
 ```
 
@@ -450,7 +455,7 @@ Copy it next to the `Makefile` to use `make analyze`.
 | 3    | “42” pattern                              | Took longer than planned: the first 3×5 font left one-cell pockets that the braiding could not open. Replaced by a 4×7 font, placed so that the rest of the maze stays connected. |
 | 4    | Braiding for the Pac-Man mode             | Done after the perfect maze, as planned. Braiding removes dead-ends and only opens a wall when no 3×3 open area appears; a final pass guarantees at least two loops. The subject's `maze_analyzer.py` was wired into the tests to confirm it. |
 | 5    | Terminal rendering and menu               | The terminal renderer and its menu were done as planned. A MiniLibX window was added as an option, sharing the same canvas and colour themes; as the subject's wheels are Linux-only, it falls back to the terminal when `mlx` is unavailable. |
-| 6    | Packaging, README, licence                | The wheel, the MIT licence and the README came last, as planned. After that, the code was cleaned up for readability, a Japanese README was added, and `mazegen.py` was split into a layered package without changing its public API. Finally, the bonuses (Prim, Kruskal) and the optional features (MiniLibX window, save menu, extra configuration keys) were removed, to keep the submission small and quick to review. |
+| 6    | Packaging, README, licence                | The wheel, the MIT licence and the README came last, as planned. After that, the code was cleaned up for readability, a Japanese README was added, and `mazegen.py` was split into a layered package without changing its public API (unused public methods and re-exports were dropped later). Finally, the bonuses (Prim, Kruskal) and the optional features (MiniLibX window, save menu, extra configuration keys) were removed, to keep the submission small and quick to review. |
 
 ### What worked well, what could be improved
 

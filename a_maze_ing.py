@@ -7,19 +7,23 @@
 
 処理の流れ:
     1. 設定ファイルを読む（amazeing.config）
-    2. 迷路を生成する（mazegen.MazeGenerator）
+    2. 迷路を生成し、要件を自己検査した結果を表示する
+       （mazegen.MazeGenerator.check() を display.session.report_problems
+       から呼ぶ。作り直したときも同じ関数を使うので display にある）
     3. OUTPUT_FILE に書き出す（amazeing.output）
-    4. 端末に表示する。標準入力が端末なら対話メニューを開く
+    4. 端末に表示する。入力も出力も端末なら対話メニューを開く
        （amazeing.display）
 """
 
 from __future__ import annotations
 
+import os
 import sys
 from typing import List, Optional, TextIO
 
 from amazeing.config import ConfigError, MazeConfig, load_config
 from amazeing.display import menu
+from amazeing.display.render import can_draw_blocks
 from amazeing.display.session import Session, report_problems
 from amazeing.output import OutputError, write_maze
 from mazegen import MazeError, MazeGenerator
@@ -41,6 +45,13 @@ def main(argv: Optional[List[str]] = None) -> int:
         return 0
     try:
         run_program(args[1])
+        if sys.stdout is not None:
+            sys.stdout.flush()  # 書き出しの失敗を、ここで捕まえるため
+    except BrokenPipeError:
+        # 出力先（パイプ）が先に閉じられた。もう何も表示できないので、
+        # 終了時に Python が出す警告も防ぐため、標準出力を捨て先に向ける。
+        os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        return 1
     except (ConfigError, MazeError, OutputError, OSError) as error:
         print(f"Error: {error}", file=sys.stderr)
         return 1
@@ -58,14 +69,20 @@ def run_program(config_path: str) -> None:
     config = load_config(config_path)
     generator = build_generator(config)
     generator.generate()
-    report_problems(generator)
+    report_problems(generator)  # "42" を描けなかった理由と check() の結果
 
     write_maze(config.output_file, generator)
     print(f"Maze written to {config.output_file}")
 
-    # 出力が端末でない（ファイルやパイプ）ときは、色を使わず ASCII で描く。
-    session = Session(generator, colour=is_terminal(sys.stdout))
-    if is_terminal(sys.stdin):
+    # 出力が端末でない（ファイルやパイプ）ときや、端末が "██" を表示でき
+    # ないときは、色を使わず ASCII で描く。
+    stdout = sys.stdout
+    colour = (
+        stdout is not None and stdout.isatty()
+        and can_draw_blocks(stdout.encoding)
+    )
+    session = Session(generator, colour=colour)
+    if is_terminal(sys.stdin) and is_terminal(sys.stdout):
         menu.run(session)
     else:
         menu.show(session)  # パイプやリダイレクトのときは表示だけして終わる

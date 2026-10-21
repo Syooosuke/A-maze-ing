@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .constants import MAX_SIZE, MIN_SIZE, Coord
+from .constants import MAX_SIZE, MIN_LOOPS, MIN_SIZE, Coord
 from .errors import MazeError
 
 
@@ -26,9 +26,9 @@ def check_arguments(
     if entry == exit:
         raise MazeError("entry and exit must be different cells")
     # 2x2 の格子には壁が 4 枚しかなく、ループは最大 1 つしか作れない。
-    # Pac-Man 盤（PERFECT=False）は独立したループを 2 つ以上必要とする。
+    # Pac-Man 盤（PERFECT=False）は独立したループを MIN_LOOPS 個以上必要とする。
     if not perfect and width == 2 and height == 2:
         raise MazeError(
             "a 2x2 maze is too small for a playable board "
-            "(PERFECT=False needs at least two independent loops)"
+            f"(PERFECT=False needs at least {MIN_LOOPS} independent loops)"
         )
