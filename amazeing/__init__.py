@@ -6,5 +6,4 @@
     config/    設定ファイルの読み込みと検証
     output.py  出力ファイルの書き出し
     display/   端末への表示と対話メニュー
-    minilibx/  MiniLibX のウィンドウ（任意機能）
 """

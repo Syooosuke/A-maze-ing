@@ -17,8 +17,7 @@
 主なコンストラクタ引数: width/height（格子の大きさ、2 以上）、
 entry/exit（入口と出口の座標。exit の既定値は右下）、perfect（True
 なら経路が 1 本の完全迷路、False ならループのある編み込み盤）、seed
-（再現用のシード）、algorithm（backtracker/prim/kruskal）、pattern
-（"42" のパターンを描くかどうか）。
+（再現用のシード）。
 
 generate() を呼んだ後は、grid（各セルの壁ビットマスク。NORTH=1,
 EAST=2, SOUTH=4, WEST=8）、solution（入口から出口への最短経路）、
@@ -31,7 +30,6 @@ directions（同じ経路を N/E/S/W で表した文字列）、pattern_cells（
 from __future__ import annotations
 
 from .constants import (
-    ALGORITHMS,
     ALL_WALLS,
     Coord,
     EAST,
@@ -48,7 +46,6 @@ from .generator import MazeGenerator
 __version__ = "1.0.0"
 
 __all__ = [
-    "ALGORITHMS",
     "ALL_WALLS",
     "Coord",
     "EAST",

@@ -19,16 +19,3 @@ PERFECT=False
 
 # Seed of the random generator; remove it for a different maze each run.
 SEED=42
-
-# backtracker (default), prim or kruskal.
-ALGORITHM=backtracker
-
-# Draw the "42" pattern with fully closed cells.
-PATTERN=True
-
-# Allow ANSI colours in the terminal rendering.
-COLOR=True
-
-# terminal (default) or mlx for a MiniLibX window ("make install-mlx").
-# When MiniLibX is unavailable the program falls back to the terminal.
-DISPLAY=terminal

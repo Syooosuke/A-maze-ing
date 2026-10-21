@@ -21,12 +21,10 @@ dist/
 *.egg-info/
 mazegen-*.tar.gz
 
-# MiniLibX extraction directory
-.mlx/
-
 # Not part of the submission (see the subject):
 #  - the test programs are "not submitted or graded"
 #  - these two files are provided with the subject, not by us
+#    (this version does not use the MiniLibX archive)
 tests/
 maze_analyzer.py
 mlx-2.2.tgz

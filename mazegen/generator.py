@@ -10,17 +10,11 @@ from .analysis.verify import find_problems
 from .constants import Coord, random_seed
 from .errors import MazeError
 from .grid import Grid
-from .generation import algorithms, braiding
+from .generation import braiding
+from .generation.backtracker import carve_backtracker
 from .generation.pattern import landmarks, place_pattern
 from .reader import MazeReader
 from .validation import check_arguments
-
-# ALGORITHM の名前から、全域木を掘る関数を引く表。
-CARVERS = {
-    "backtracker": algorithms.carve_backtracker,
-    "prim": algorithms.carve_prim,
-    "kruskal": algorithms.carve_kruskal,
-}
 
 
 class MazeGenerator(MazeReader):
@@ -39,9 +33,6 @@ class MazeGenerator(MazeReader):
         exit: Optional[Coord] = None,
         perfect: bool = True,
         seed: Optional[int] = None,
-        algorithm: str = "backtracker",
-        pattern: bool = True,
-        pattern_text: str = "42",
     ) -> None:
         """条件を検証して保存する。迷路はまだ作らない。
 
@@ -50,16 +41,13 @@ class MazeGenerator(MazeReader):
         """
         if exit is None:
             exit = (width - 1, height - 1)
-        check_arguments(width, height, entry, exit, algorithm, pattern_text)
+        check_arguments(width, height, entry, exit)
         self.width = width
         self.height = height
         self.entry = entry
         self.exit = exit
         self.perfect = perfect
         self.seed = seed
-        self.algorithm = algorithm
-        self.pattern = pattern
-        self.pattern_text = pattern_text
 
         # generate() の結果。それまでは壁がすべて閉じた格子になっている。
         self._grid = Grid(width, height)
@@ -87,20 +75,19 @@ class MazeGenerator(MazeReader):
         # 1. 壁がすべて閉じた格子に、"42" のパターンの場所を決める。
         self._grid = Grid(self.width, self.height)
         self.grid = self._grid.walls
-        self.pattern_cells, self.pattern_warning = set(), None
-        if self.pattern and self.pattern_text:
-            reserved = {self.entry, self.exit}
-            reserved.update(landmarks(self.width, self.height).values())
-            self.pattern_cells, self.pattern_warning = place_pattern(
-                self.width, self.height, self.pattern_text, reserved, rng
-            )
+        reserved = {self.entry, self.exit}
+        reserved.update(landmarks(self.width, self.height).values())
+        self.pattern_cells, self.pattern_warning = place_pattern(
+            self.width, self.height, reserved, rng
+        )
         self._region = [
             cell for cell in self._grid.cells()
             if cell not in self.pattern_cells
         ]
 
-        # 2. 残りのセルを全域木で掘る。これで完全迷路になる。
-        CARVERS[self.algorithm](self._grid, self._region, rng)
+        # 2. 残りのセルを、再帰的バックトラッカーで全域木に掘る。
+        #    これで完全迷路（ループのない迷路）になる。
+        carve_backtracker(self._grid, self._region, rng)
 
         # 3. Pac-Man 盤なら、行き止まりをなくしてループを 2 つ以上にする。
         if not self.perfect:

@@ -15,11 +15,11 @@ Two very different kinds of maze can be produced from the same grid:
 * `PERFECT=True` — a **perfect maze**: exactly one path between the entry
   and the exit, no loop anywhere. This is the classic lab maze.
 * `PERFECT=False` (the default) — a **playable Pac-Man board**: every
-  corridor reachable, the four corners and the centre open, many
-  independent routes, and **no dead-end at all**, so a chased player is
-  never trapped.
+  corridor reachable, the four corners and the centre open, at least two
+  independent routes, and dead-ends removed, so a chased player always has
+  an alternative.
 
-In both modes a large **“42”** is drawn inside the maze with fully closed
+In both modes a **“42”** is drawn inside the maze with fully closed
 cells, and the shortest path from the entry to the exit is computed and
 exported.
 
@@ -65,64 +65,27 @@ make build
 # (copy maze_analyzer.py, provided with the subject, next to the Makefile)
 make analyze
 
-# Optional: install the MiniLibX wrapper for the graphical display (Linux)
-# (copy mlx-2.2.tgz, provided with the subject, next to the Makefile)
-make install-mlx
-
 # Remove caches, build artefacts, then also the venv and maze.txt
 make clean
 make fclean
 ```
 
-### Displays
-
-Two renderings are available, selected with the `DISPLAY` key of the
-configuration file:
-
-* `DISPLAY=terminal` (default) — ANSI colour rendering in the terminal,
-  with a numbered menu;
-* `DISPLAY=mlx` — a **MiniLibX window**, driven with the keyboard.
-
-The MiniLibX is *optional*: it is not a dependency of the project. If the
-`mlx` package is missing, or if no display is available, the program prints
-a warning and falls back to the terminal rendering — it never fails because
-of it.
-
-```bash
-# with mlx-2.2.tgz (provided with the subject) at the root of the repository
-make install-mlx     # unpacks it and installs the right wheel
-# then set DISPLAY=mlx in config.txt
-```
-
-`mlx-2.2.tgz` ships Linux wheels only (`fedora/` and `ubuntu/`), so the
-window works on the school clusters; on macOS the fallback takes over. The
-archive is not committed here: it is provided with the subject, not by us.
-
-In the window: `1` regenerate, `2` show/hide the path, `3` rotate the wall
-colours, `4` toggle the “42” colours, `5` save, `6`/`Esc` quit. The whole
-maze is drawn into one MiniLibX image and blitted in a single call, and the
-colour themes are shared with the terminal renderer (the xterm‑256 palette
-is converted to RGB).
-
 ### Interactive menu
 
-With `DISPLAY=terminal`, when the standard input is a terminal, the program
-shows a menu after displaying the maze:
+The maze is displayed in the terminal. When the standard input is a
+terminal, the program then shows a menu:
 
 ```
 === A-Maze-ing ===
 1. Re-generate a new maze
 2. Show / Hide the shortest path
 3. Rotate the wall colours
-4. Toggle the "42" colours
-5. Save the maze to the output file
-6. Quit
+4. Quit
 ```
 
 Colours are 256-colour ANSI codes. They are disabled automatically when the
-output is redirected, when the `NO_COLOR` environment variable is set, or
-when `COLOR=False` appears in the configuration file — the rendering then
-falls back to plain ASCII (`##` walls, `EE` entry, `XX` exit, `%%` for the
+output is redirected to a file or a pipe — the rendering then falls back to
+plain ASCII (`##` walls, `EE` entry, `XX` exit, `%%` for the
 “42”, `..` for the path).
 
 ## Configuration file
@@ -149,12 +112,8 @@ crashes on a bad input.
 | Key         | Default        | Description                                     |
 | ----------- | -------------- | ----------------------------------------------- |
 | `SEED`      | random         | Integer seed; the same seed always rebuilds the same maze |
-| `ALGORITHM` | `backtracker`  | `backtracker`, `prim` or `kruskal`              |
-| `PATTERN`   | `True`         | Draw the “42” pattern                           |
-| `COLOR`     | `True`         | Allow ANSI colours in the terminal rendering    |
-| `DISPLAY`   | `terminal`     | `terminal` or `mlx` (MiniLibX window)           |
 
-Booleans accept `True`/`False`, `yes`/`no`, `on`/`off`, `1`/`0`.
+`PERFECT` accepts `True` or `False` (case insensitive).
 
 The default file is [`config.txt`](config.txt):
 
@@ -166,10 +125,6 @@ EXIT=24,16
 OUTPUT_FILE=maze.txt
 PERFECT=False
 SEED=42
-ALGORITHM=backtracker
-PATTERN=True
-COLOR=True
-DISPLAY=terminal
 ```
 
 ## Output file format
@@ -204,47 +159,45 @@ EEEEEEESENEEESESSEESSSWWSWSESSSSSSSESENEEESENEESEEEE
 ```
 
 Neighbouring cells always agree on the wall they share: walls are only ever
-modified through a single private helper that writes both sides at once, so
-incoherent data is impossible by construction.
+modified through `Grid.open_wall()` / `Grid.close_wall()`, which write both
+sides at once, so incoherent data is impossible by construction.
 
 ## Maze generation algorithm
 
 ### Which one
 
-The default algorithm is the **randomised depth-first search**, better known
+The maze is carved with the **randomised depth-first search**, better known
 as the **recursive backtracker**, implemented iteratively with an explicit
-stack (so a 1000×1000 maze cannot blow the Python recursion limit).
-**Randomised Prim** and **randomised Kruskal** are also available through
-the `ALGORITHM` key — all three build a *spanning tree* of the corridor
-cells, which is exactly the definition of a perfect maze.
+stack (so a 1000×1000 maze cannot blow the Python recursion limit). It
+builds a *spanning tree* of the corridor cells, which is exactly the
+definition of a perfect maze.
 
 The generation runs in four stages:
 
-1. **Place the “42”.** The digits are drawn from a 4×7 bitmap font, scaled
-   up as large as the grid allows (never more than 30 % of the cells, never
-   touching the border, never covering the entry, the exit, a corner or the
-   centre). The chosen placement must leave every remaining cell connected.
+1. **Place the “42”.** The digits are drawn from a 4×7 bitmap font (9×7
+   cells in all), never touching the border, never covering the entry, the
+   exit, a corner or the centre. The chosen placement must leave every remaining cell connected.
    Those cells stay at `f`, fully closed, and the maze is simply carved
    *around* them. If the maze is too small to hold the pattern, it is
    skipped and a message is printed on the console.
 2. **Carve a spanning tree** over every cell outside the pattern with the
-   selected algorithm. At this point the maze is perfect, and the work is
+   recursive backtracker. At this point the maze is perfect, and the work is
    over when `PERFECT=True`.
 3. **Braid** (only when `PERFECT=False`): while a cell has a single open
    wall, open one more of its walls. A wall is only opened if it does not
    create a 3×3 fully open area, so corridors never get wider than two
-   cells. This removes **every** dead-end, which is the bonus asked for by
-   the subject.
+   cells. This keeps dead-ends rare, as the subject requires.
 4. **Guarantee at least two loops** and **solve** the maze with a
    breadth-first search, which yields a genuinely *shortest* path.
 
 ### Why this one
 
 * The recursive backtracker produces **long, winding corridors** with few
-  junctions, which makes for maze that is pleasant to look at and genuinely
-  hard to solve — Prim and Kruskal tend to produce shorter, bushier
-  branches. It is also the easiest of the three to reason about, which
-  matters when you have to explain your code during a defence.
+  junctions, which makes for a maze that is pleasant to look at and
+  genuinely hard to solve — Prim and Kruskal tend to produce shorter,
+  bushier branches. It is also the easiest of the classic algorithms to
+  reason about, which matters when you have to explain your code during a
+  defence.
 * It is **O(number of cells)** in both time and memory, and works on any
   graph, so restricting it to “every cell except the 42 pattern” costs
   nothing: the pattern cells are simply never valid neighbours.
@@ -253,17 +206,14 @@ The generation runs in four stages:
   intermediate state of the playable one.
 
 The trade-off is that a raw backtracker maze is *very* dead-end heavy, which
-is precisely why the braiding stage matters so much in Pac-Man mode. Prim
-and Kruskal were kept because they braid into slightly different looking
-boards, and because comparing them is a good way to check that the
-validation code does not depend on the algorithm.
+is precisely why the braiding stage matters so much in Pac-Man mode.
 
 ### Correctness
 
 `MazeGenerator.check()` re-validates a generated maze against every
 requirement of the subject — closed borders, coherent shared walls, full
 connectivity, fully closed pattern cells, no 3×3 open area, no loop when
-perfect, and loops plus open corners, open centre and no dead-end when
+perfect, and loops plus open corners, open centre and rare dead-ends when
 playable. The program runs it after every generation and prints any problem
 as a warning. The test suite additionally re-reads the **output file** and
 re-checks everything from scratch, without using the generator internals.
@@ -277,28 +227,22 @@ the subject, not from us); drop it next to the `Makefile` to use it.
 
 ```bash
 make analyze
-# or directly, with the strictest threshold (the no-dead-end bonus):
-python3 maze_analyzer.py maze.txt --max-dead-ends 0
+# or directly:
+python3 maze_analyzer.py maze.txt
 ```
 
-Both modes reach the best possible verdict:
+Both modes get the verdict the subject asks for:
 
 ```
 # PERFECT=False
-Dead-ends        : 0 real + 0 enclosed by the '42' (tolerated)
-Corners + centre : all reachable
-Wall coherence   : OK (all shared walls match)
-Verdict: Pac-Man-USABLE: fully connected, corners and centre reachable,
-         33 independent routes; no real dead-end -> bonus-grade
-         (perfectly braided).
+Verdict: Pac-Man-USABLE: fully connected, corners and centre reachable, ...
 
 # PERFECT=True
 Verdict: PERFECT maze: a single path, no loop -> matches PERFECT=True
 ```
 
-The analyzer is also wired into our local test suite: dozens of mazes, of
-different sizes, seeds and algorithms, are generated and required to reach
-those verdicts with `--min-loops 2 --max-dead-ends 0`. That suite is not
+The analyzer is also wired into our local test suite: mazes of different
+sizes and seeds are generated and required to reach those verdicts. That suite is not
 committed — the subject states the test programs are "not submitted or
 graded" — but `make test` runs it whenever a `tests/` directory is present.
 
@@ -344,9 +288,6 @@ gen = MazeGenerator(
     exit=(30, 20),       # (x, y), must differ from entry
     perfect=False,       # False -> braided, playable board
     seed=1234,           # None -> random, but always recorded
-    algorithm="prim",    # "backtracker", "prim" or "kruskal"
-    pattern=True,        # draw the "42"
-    pattern_text="42",   # what to draw
 )
 gen.generate()
 ```
@@ -389,28 +330,9 @@ board = [
 ]
 ```
 
-The full documentation is also the module docstring, so `pydoc mazegen` or
-`help(mazegen)` works after installing the package. It holds both an English
-and a Japanese version; the docstrings of the rest of the code are in
-Japanese.
-
-## Advanced features
-
-* **Three generation algorithms** — recursive backtracker, randomised Prim,
-  randomised Kruskal, selected with the `ALGORITHM` key.
-* **Zero dead-end braided boards** — the bonus asked by the subject: in
-  `PERFECT=False` mode the generator removes *every* dead-end while keeping
-  corridors at most two cells wide.
-* **Scalable “42” pattern** — the digits are drawn from a bitmap font and
-  automatically scaled to the largest size the grid can host.
-* **Two displays** — an ANSI terminal renderer and an optional **MiniLibX**
-  window, sharing the same canvas and the same colour themes.
-* **Five colour themes** rotated live from the menu, with a separate toggle
-  for the “42” colours, and automatic fallback to plain ASCII.
-* **Self-validation** — `check()` verifies every rule of the subject after
-  each generation.
-* **Reproducibility** — even a maze generated without a seed records the
-  seed it used, so it can always be replayed.
+A short version of this documentation is also the module docstring (in
+Japanese, like the other docstrings), so `pydoc mazegen` or `help(mazegen)`
+works after installing the package.
 
 ## Resources
 
@@ -477,7 +399,7 @@ unnoticed.
 │   ├── generation/                   # building the maze
 │   │   ├── pattern.py                # where the "42" goes
 │   │   ├── glyphs.py                 # bitmap font of the "42"
-│   │   ├── algorithms.py             # backtracker, Prim, Kruskal
+│   │   ├── backtracker.py            # recursive backtracker
 │   │   └── braiding.py               # dead-end removal, extra loops
 │   └── analysis/                     # inspecting the result
 │       ├── routes.py                 # shortest path, loops, dead-ends
@@ -489,18 +411,12 @@ unnoticed.
 │   │   ├── settings.py               # load_config(): builds a MazeConfig
 │   │   ├── reader.py                 # reads the KEY=VALUE lines
 │   │   └── values.py                 # converts the values (int, bool, x,y)
-│   ├── display/                      # terminal display
-│   │   ├── canvas.py                 # what to draw where (no colours)
-│   │   ├── themes.py                 # colour themes
-│   │   ├── render.py                 # canvas -> terminal text
-│   │   ├── session.py                # displayed maze and display options
-│   │   └── menu.py                   # interactive terminal menu
-│   └── minilibx/                     # optional MiniLibX window
-│       ├── viewer.py                 # MlxViewer: window + keys
-│       ├── window.py                 # MiniLibX window and image
-│       ├── setup.py                  # is MiniLibX usable, window scale
-│       ├── colours.py                # theme colours -> RGB
-│       └── keys.py                   # keys of the window
+│   └── display/                      # terminal display
+│       ├── canvas.py                 # what to draw where (no colours)
+│       ├── themes.py                 # colour themes
+│       ├── render.py                 # canvas -> terminal text
+│       ├── session.py                # displayed maze and display options
+│       └── menu.py                   # interactive terminal menu
 ├── config.txt                        # default configuration
 ├── pyproject.toml                    # package build configuration
 ├── Makefile
@@ -513,10 +429,9 @@ Only the files required by the subject are committed: no tool
 configuration file of our own, no cache, no build leftover. The
 development tools and the flake8 excludes live in the `Makefile` itself, so
 that nothing outside this list has to be tracked. The test programs are
-deliberately absent ("not submitted or graded"), and so are the two files
-that come *with* the subject rather than from us: `maze_analyzer.py` and
-`mlx-2.2.tgz`. Copy them next to the `Makefile` to use `make analyze` and
-`make install-mlx`.
+deliberately absent ("not submitted or graded"), and so is
+`maze_analyzer.py`, which comes *with* the subject rather than from us.
+Copy it next to the `Makefile` to use `make analyze`.
 
 ## Team and project management
 
@@ -534,9 +449,9 @@ that come *with* the subject rather than from us: `maze_analyzer.py` and
 | 1    | Config parsing and error handling         | Done first, as planned. The same range checks (size, entry/exit) were later repeated in `MazeGenerator` so that the module stays safe when used without the config file. |
 | 2    | Perfect maze generation + output file     | Started with the recursive backtracker only. Prim and Kruskal were added afterwards as a bonus, once `check()` could verify every algorithm automatically. |
 | 3    | “42” pattern                              | Took longer than planned: the first 3×5 font left one-cell pockets that the braiding could not open. Replaced by a 4×7 font that scales with the grid, placed so that the rest of the maze stays connected. |
-| 4    | Braiding for the Pac-Man mode             | Done after the perfect maze, as planned. Braiding removes every dead-end (the no-dead-end bonus) and only opens a wall when no 3×3 open area appears; a final pass guarantees at least two loops. The subject's `maze_analyzer.py` was wired into the tests to confirm it. |
+| 4    | Braiding for the Pac-Man mode             | Done after the perfect maze, as planned. Braiding removes dead-ends and only opens a wall when no 3×3 open area appears; a final pass guarantees at least two loops. The subject's `maze_analyzer.py` was wired into the tests to confirm it. |
 | 5    | Terminal rendering and menu               | The terminal renderer and its menu were done as planned. A MiniLibX window was added as an option, sharing the same canvas and colour themes; as the subject's wheels are Linux-only, it falls back to the terminal when `mlx` is unavailable. |
-| 6    | Packaging, README, licence                | The wheel, the MIT licence and the README came last, as planned. After that, the code was cleaned up for readability, a Japanese README was added, and `mazegen.py` was split into a layered package without changing its public API. |
+| 6    | Packaging, README, licence                | The wheel, the MIT licence and the README came last, as planned. After that, the code was cleaned up for readability, a Japanese README was added, and `mazegen.py` was split into a layered package without changing its public API. Finally, the bonuses (Prim, Kruskal) and the optional features (MiniLibX window, save menu, extra configuration keys) were removed, to keep the submission small and quick to review. |
 
 ### What worked well, what could be improved
 
@@ -551,10 +466,6 @@ that come *with* the subject rather than from us: `maze_analyzer.py` and
 * **Worked well:** wiring the subject's `maze_analyzer.py` into the tests.
   It is the exact oracle the project is graded against, so there was no
   guessing left about the Pac-Man rules.
-* **To improve:** the MiniLibX viewer is tested through an injected double
-  rather than against a real window, because the wheels shipped with the
-  subject are Linux-only — the rendering logic is covered, the actual X11
-  window has to be checked by hand on a cluster machine.
 
 ### Tools
 
@@ -566,6 +477,4 @@ that come *with* the subject rather than from us: `maze_analyzer.py` and
 * **`build` + setuptools** for the pip package.
 * **`maze_analyzer.py`** (provided with the subject) as the reference
   validator, both from `make analyze` and from the test suite.
-* **MiniLibX** (`mlx-2.2.tgz`, provided with the subject) for the optional
-  graphical display.
 * **Claude** as a pair-programming assistant, see *Resources* above.

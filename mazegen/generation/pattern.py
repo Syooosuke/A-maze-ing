@@ -7,11 +7,7 @@ from collections import deque
 from typing import Deque, Dict, List, Optional, Set, Tuple
 
 from ..constants import DELTA, Coord
-from .glyphs import GLYPH_HEIGHT, text_cells, text_width
-
-# パターンが格子のこれ以上の割合を占めるなら、もう一段小さく描く。
-# 大きすぎると、迷路として遊べる部分が窮屈になる。
-MAX_PATTERN_RATIO = 0.30
+from .glyphs import PATTERN_HEIGHT, PATTERN_WIDTH, pattern_shape
 
 # 中央に置けなかったときに試す、ランダムな位置の数。
 RANDOM_ATTEMPTS = 25
@@ -29,40 +25,30 @@ def landmarks(width: int, height: int) -> Dict[str, Coord]:
 
 
 def place_pattern(
-    width: int, height: int, text: str, reserved: Set[Coord],
-    rng: random.Random,
+    width: int, height: int, reserved: Set[Coord], rng: random.Random
 ) -> Tuple[Set[Coord], Optional[str]]:
-    """text のパターンを置くセルを決める。大きい倍率から順に試す。
+    """"42" のパターンを置くセルを決める。
 
-    reserved（入口、出口、四隅、中央）はパターンで塞がない。
+    外周から 1 セル空けて置き、reserved（入口、出口、四隅、中央）は
+    パターンで塞がない。
 
     Returns:
         (パターンのセル, None)。置けなかったときは (空集合, 理由)。
     """
-    # 外周に 1 セルずつ余白を残して収まる、いちばん大きな倍率。
-    largest_scale = min(
-        (width - 2) // text_width(text),
-        (height - 2) // GLYPH_HEIGHT,
+    reason = (
+        f"the '42' pattern was skipped: a {width}x{height} maze is too "
+        f"small for it (at least {PATTERN_WIDTH + 2}x{PATTERN_HEIGHT + 2} "
+        f"cells are needed)"
     )
-    for scale in range(largest_scale, 0, -1):
-        shape = text_cells(text, scale)
-        if len(shape) > MAX_PATTERN_RATIO * width * height:
-            continue
-        shape_width = text_width(text) * scale
-        shape_height = GLYPH_HEIGHT * scale
-        cells = _find_position(
-            width, height, shape, shape_width, shape_height, reserved, rng
-        )
-        if cells is not None:
-            return cells, None
-
-    needed_width = text_width(text) + 2
-    needed_height = GLYPH_HEIGHT + 2
-    return set(), (
-        f"the {text!r} pattern was skipped: a {width}x{height} maze is "
-        f"too small for it (at least {needed_width}x{needed_height} cells "
-        f"are needed)"
+    if PATTERN_WIDTH + 2 > width or PATTERN_HEIGHT + 2 > height:
+        return set(), reason
+    cells = _find_position(
+        width, height, pattern_shape(), PATTERN_WIDTH, PATTERN_HEIGHT,
+        reserved, rng,
     )
+    if cells is None:
+        return set(), reason
+    return cells, None
 
 
 def _find_position(

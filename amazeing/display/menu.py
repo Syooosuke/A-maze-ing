@@ -10,11 +10,9 @@ MENU = (
     "1. Re-generate a new maze",
     "2. Show / Hide the shortest path",
     "3. Rotate the wall colours",
-    '4. Toggle the "42" colours',
-    "5. Save the maze to the output file",
-    "6. Quit",
+    "4. Quit",
 )
-QUIT_WORDS = ("6", "q", "quit")
+QUIT_WORDS = ("4", "q", "quit")
 
 
 def show(session: Session) -> None:
@@ -57,11 +55,5 @@ def _apply(session: Session, choice: str) -> bool:
     if choice == "3":
         session.next_theme()
         return True
-    if choice == "4":
-        session.toggle_pattern_colour()
-        return True
-    if choice == "5":
-        session.save()
-        return False
     print(f"Unknown choice {choice!r}, please pick 1 to {len(MENU)}.")
     return False

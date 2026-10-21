@@ -38,8 +38,6 @@ OPPOSITE: Dict[int, int] = {
 # 出力ファイルで経路を書くときの文字。
 LETTER: Dict[int, str] = {NORTH: "N", EAST: "E", SOUTH: "S", WEST: "W"}
 
-ALGORITHMS: Tuple[str, ...] = ("backtracker", "prim", "kruskal")
-
 # 迷路の一辺として認める大きさ。設定ファイルの検証も同じ値を使う。
 MIN_SIZE: int = 2
 MAX_SIZE: int = 1000

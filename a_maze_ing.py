@@ -9,20 +9,18 @@
     1. 設定ファイルを読む（amazeing.config）
     2. 迷路を生成する（mazegen.MazeGenerator）
     3. OUTPUT_FILE に書き出す（amazeing.output）
-    4. 表示する。DISPLAY=mlx ならウィンドウ（amazeing.minilibx）、そうで
-       なければ端末。標準入力が端末なら対話メニュー（amazeing.display）
+    4. 端末に表示する。標準入力が端末なら対話メニューを開く
+       （amazeing.display）
 """
 
 from __future__ import annotations
 
-import os
 import sys
 from typing import List, Optional
 
 from amazeing.config import ConfigError, MazeConfig, load_config
 from amazeing.display.menu import run, show
 from amazeing.display.session import Session, report_problems
-from amazeing.minilibx.viewer import MlxUnavailable, show_in_window
 from amazeing.output import OutputError, write_maze
 from mazegen import MazeError, MazeGenerator
 
@@ -64,10 +62,8 @@ def run_program(config_path: str) -> None:
     write_maze(config.output_file, generator)
     print(f"Maze written to {config.output_file}")
 
-    session = Session(generator, config)
-    session.colour = use_colour(config)
-    if config.display == "mlx" and show_window(session):
-        return
+    # 出力が端末でない（ファイルやパイプ）ときは、色を使わず ASCII で描く。
+    session = Session(generator, colour=sys.stdout.isatty())
     if sys.stdin.isatty():
         run(session)
     else:
@@ -87,34 +83,7 @@ def build_generator(config: MazeConfig) -> MazeGenerator:
         exit=config.exit,
         perfect=config.perfect,
         seed=config.seed,
-        algorithm=config.algorithm,
-        pattern=config.pattern,
     )
-
-
-def use_colour(config: MazeConfig) -> bool:
-    """端末表示で色を使うかを返す。
-
-    設定で COLOR=False のとき、環境変数 NO_COLOR があるとき、出力が
-    端末でない（ファイルやパイプ）ときは色を使わない。
-    """
-    return (
-        config.color
-        and os.environ.get("NO_COLOR") is None
-        and sys.stdout.isatty()
-    )
-
-
-def show_window(session: Session) -> bool:
-    """MiniLibX のウィンドウで表示する。使えなければ警告して False を返す。"""
-    try:
-        show_in_window(session)
-    except MlxUnavailable as error:
-        print(f"Warning: {error}", file=sys.stderr)
-        print("Warning: falling back to the terminal rendering.",
-              file=sys.stderr)
-        return False
-    return True
 
 
 if __name__ == "__main__":

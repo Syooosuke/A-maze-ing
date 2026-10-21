@@ -11,10 +11,8 @@ from typing import List, Optional, Tuple
 
 from amazeing.config.reader import MANDATORY_KEYS, ConfigError, read_pairs
 from amazeing.config.values import (
-    parse_algorithm,
     parse_bool,
     parse_coord,
-    parse_display,
     parse_int,
     parse_path,
     parse_positive_int,
@@ -34,10 +32,6 @@ class MazeConfig:
         output_file: 迷路を書き出すファイルのパス。
         perfect: 完全迷路なら True、Pac-Man 盤なら False。
         seed: 再現用のシード。指定がなければ None（毎回ランダム）。
-        algorithm: 全域木アルゴリズムの名前。
-        pattern: "42" のパターンを描くかどうか。
-        color: 端末描画で ANSI カラーを使ってよいかどうか。
-        display: "terminal"（端末）か "mlx"（MiniLibX ウィンドウ）。
     """
 
     width: int
@@ -47,10 +41,6 @@ class MazeConfig:
     output_file: str
     perfect: bool
     seed: Optional[int] = None
-    algorithm: str = "backtracker"
-    pattern: bool = True
-    color: bool = True
-    display: str = "terminal"
 
 
 def load_config(path: str) -> MazeConfig:
@@ -78,12 +68,6 @@ def load_config(path: str) -> MazeConfig:
         output_file=parse_path("OUTPUT_FILE", pairs["OUTPUT_FILE"]),
         perfect=parse_bool("PERFECT", pairs["PERFECT"]),
         seed=seed,
-        algorithm=parse_algorithm(
-            "ALGORITHM", pairs.get("ALGORITHM", "backtracker")
-        ),
-        pattern=parse_bool("PATTERN", pairs.get("PATTERN", "True")),
-        color=parse_bool("COLOR", pairs.get("COLOR", "True")),
-        display=parse_display("DISPLAY", pairs.get("DISPLAY", "terminal")),
     )
     _check_consistency(config)
     return config

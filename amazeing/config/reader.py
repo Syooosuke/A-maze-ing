@@ -12,13 +12,7 @@ MANDATORY_KEYS: Tuple[str, ...] = (
     "OUTPUT_FILE",
     "PERFECT",
 )
-OPTIONAL_KEYS: Tuple[str, ...] = (
-    "SEED",
-    "ALGORITHM",
-    "PATTERN",
-    "COLOR",
-    "DISPLAY",
-)
+OPTIONAL_KEYS: Tuple[str, ...] = ("SEED",)
 KNOWN_KEYS: Tuple[str, ...] = MANDATORY_KEYS + OPTIONAL_KEYS
 
 
