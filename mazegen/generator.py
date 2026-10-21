@@ -39,7 +39,7 @@ class MazeGenerator:
         """
         if exit is None:
             exit = (width - 1, height - 1)
-        check_arguments(width, height, entry, exit)
+        check_arguments(width, height, entry, exit, perfect)
         self.width = width
         self.height = height
         self.entry = entry
@@ -48,6 +48,8 @@ class MazeGenerator:
         self.seed = seed
 
         # generate() の結果。それまでは壁がすべて閉じた格子になっている。
+        # _grid は壁を開け閉めする Grid オブジェクト、grid は利用者に見せる
+        # 壁のリストで、_grid.walls と同じリストを指している。
         self._grid = Grid(width, height)
         self.grid: List[List[int]] = self._grid.walls
         self.pattern_cells: Set[Coord] = set()
@@ -115,4 +117,4 @@ class MazeGenerator:
 
     def to_hex_lines(self) -> List[str]:
         """迷路を 1 セル 16 進数 1 桁で表した行のリストを返す。"""
-        return ["".join(f"{walls:x}" for walls in row) for row in self.grid]
+        return ["".join(f"{walls:X}" for walls in row) for row in self.grid]

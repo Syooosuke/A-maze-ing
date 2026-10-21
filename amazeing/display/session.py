@@ -60,7 +60,8 @@ class Session:
         mode = "perfect" if maze.perfect else "playable board"
         return (
             f"{maze.width}x{maze.height} - {mode} - "
-            f"seed {maze.seed_used} - path {len(maze.solution)} cells - "
+            f"theme {self.theme.name} - seed {maze.seed_used} - "
+            f"path {len(maze.solution)} cells - "
             f"{maze.loop_count()} loop(s) - "
             f"{len(maze.dead_ends())} dead-end(s)"
         )
@@ -78,6 +79,11 @@ class Session:
 
 
 def report_problems(generator: MazeGenerator) -> None:
-    """迷路が要件を満たしていない点があれば、警告として表示する。"""
+    """"42" を描けなかった理由と、要件を満たしていない点を表示する。
+
+    起動時と、メニューで迷路を作り直したときの両方から呼ばれる。
+    """
+    if generator.pattern_warning is not None:
+        print(f"Error: {generator.pattern_warning}", file=sys.stderr)
     for problem in generator.check():
         print(f"Warning: {problem}", file=sys.stderr)

@@ -35,38 +35,41 @@ def place_pattern(
     Returns:
         (パターンのセル, None)。置けなかったときは (空集合, 理由)。
     """
-    reason = (
-        f"the '42' pattern was skipped: a {width}x{height} maze is too "
-        f"small for it (at least {PATTERN_WIDTH + 2}x{PATTERN_HEIGHT + 2} "
-        f"cells are needed)"
-    )
-    if PATTERN_WIDTH + 2 > width or PATTERN_HEIGHT + 2 > height:
-        return set(), reason
-    cells = _find_position(
-        width, height, pattern_shape(), PATTERN_WIDTH, PATTERN_HEIGHT,
-        reserved, rng,
-    )
+    # 外周に 1 セルずつ余白を残すので、"42" の大きさ + 2 が必要。
+    needed_width, needed_height = PATTERN_WIDTH + 2, PATTERN_HEIGHT + 2
+    if width < needed_width or height < needed_height:
+        return set(), (
+            f"cannot draw the '42' pattern: a {width}x{height} maze is too "
+            f"small for it (at least {needed_width}x{needed_height} cells "
+            f"are needed)"
+        )
+    cells = _find_position(width, height, reserved, rng)
     if cells is None:
-        return set(), reason
+        return set(), (
+            f"cannot draw the '42' pattern: no place in the {width}x{height} "
+            f"maze leaves the entry, the exit, the corners and the centre "
+            f"free"
+        )
     return cells, None
 
 
 def _find_position(
-    width: int, height: int, shape: Set[Coord], shape_width: int,
-    shape_height: int, reserved: Set[Coord], rng: random.Random,
+    width: int, height: int, reserved: Set[Coord], rng: random.Random
 ) -> Optional[Set[Coord]]:
-    """shape を置ける位置を探し、置いたときのセルを返す。
+    """"42" を置ける位置を探し、置いたときのセルを返す。
 
-    外周から 1 セル空けて置き、reserved のセルは塞がない。置いた後も
-    残りのセルがすべてつながっている必要がある。まず中央を試し、だめ
-    ならランダムな位置をいくつか試す。見つからなければ None。
+    reserved のセルは塞がず、置いた後も残りのセルがすべてつながって
+    いる必要がある。まず中央を試し、だめならランダムな位置をいくつか
+    試す。見つからなければ None。
+
+    幅が偶数だと、中央のセル（reserved）が "2" の横棒に重なるので、
+    中央には置けずランダムな位置になる。
     """
-    max_left = width - shape_width - 1
-    max_top = height - shape_height - 1
-    centre = (
-        min(max(1, (width - shape_width) // 2), max_left),
-        min(max(1, (height - shape_height) // 2), max_top),
-    )
+    shape = pattern_shape()
+    # "42" の左上の角を置ける範囲。外周から 1 セル空ける。
+    max_left = width - PATTERN_WIDTH - 1
+    max_top = height - PATTERN_HEIGHT - 1
+    centre = ((width - PATTERN_WIDTH) // 2, (height - PATTERN_HEIGHT) // 2)
     # 乱数は先にまとめて引いておく。どこで見つかっても、乱数の消費量が
     # 同じになり、後に続く迷路の生成が安定する。
     randoms = [

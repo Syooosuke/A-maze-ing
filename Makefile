@@ -14,9 +14,11 @@ MYPY_FLAGS := --warn-return-any --warn-unused-ignores \
               --ignore-missing-imports --disallow-untyped-defs \
               --check-untyped-defs
 
-# Directories flake8 must not walk into. They hold no source of ours, only
-# the virtual environment and the build artefacts.
-FLAKE8_FLAGS := --extend-exclude=.venv,venv,build,dist
+# The tools of the virtual environment when "make install" created it,
+# otherwise the ones on the PATH. The directories flake8 must not walk into
+# (.venv, build, ...) are listed in .flake8, so a bare "flake8 ." works too.
+FLAKE8 := $(if $(wildcard $(BIN)/flake8),$(BIN)/flake8,flake8)
+MYPY   := $(if $(wildcard $(BIN)/mypy),$(BIN)/mypy,mypy)
 
 .PHONY: all install run debug analyze clean fclean lint \
         lint-strict test build re help
@@ -46,13 +48,13 @@ analyze:
 
 ## lint: flake8 + mypy with the flags required by the subject
 lint:
-	$(BIN)/flake8 . $(FLAKE8_FLAGS)
-	$(BIN)/mypy . $(MYPY_FLAGS)
+	$(FLAKE8) .
+	$(MYPY) . $(MYPY_FLAGS)
 
 ## lint-strict: flake8 + mypy in strict mode
 lint-strict:
-	$(BIN)/flake8 . $(FLAKE8_FLAGS)
-	$(BIN)/mypy . --strict
+	$(FLAKE8) .
+	$(MYPY) . --strict
 
 ## test: run the unit tests (tests/ is not part of the submission)
 test:

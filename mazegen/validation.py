@@ -7,7 +7,7 @@ from .errors import MazeError
 
 
 def check_arguments(
-    width: int, height: int, entry: Coord, exit: Coord
+    width: int, height: int, entry: Coord, exit: Coord, perfect: bool
 ) -> None:
     """迷路を作れない条件なら、理由を添えて MazeError を送出する。"""
     if width < MIN_SIZE or height < MIN_SIZE:
@@ -25,3 +25,10 @@ def check_arguments(
             )
     if entry == exit:
         raise MazeError("entry and exit must be different cells")
+    # 2x2 の格子には壁が 4 枚しかなく、ループは最大 1 つしか作れない。
+    # Pac-Man 盤（PERFECT=False）は独立したループを 2 つ以上必要とする。
+    if not perfect and width == 2 and height == 2:
+        raise MazeError(
+            "a 2x2 maze is too small for a playable board "
+            "(PERFECT=False needs at least two independent loops)"
+        )

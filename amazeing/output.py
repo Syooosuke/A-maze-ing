@@ -55,3 +55,5 @@ def write_maze(path: str, generator: MazeGenerator) -> None:
         ) from None
     except OSError as error:
         raise OutputError(f"cannot write {path!r}: {error}") from None
+    except ValueError:  # ファイル名に NUL 文字が含まれているなど
+        raise OutputError(f"{path!r} is not a valid file name") from None

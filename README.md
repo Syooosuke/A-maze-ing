@@ -14,8 +14,8 @@ Two very different kinds of maze can be produced from the same grid:
 
 * `PERFECT=True` — a **perfect maze**: exactly one path between the entry
   and the exit, no loop anywhere. This is the classic lab maze.
-* `PERFECT=False` (the default) — a **playable Pac-Man board**: every
-  corridor reachable, the four corners and the centre open, at least two
+* `PERFECT=False` (the value in `config.txt`) — a **playable Pac-Man
+  board**: every corridor reachable, the four corners and the centre open, at least two
   independent routes, and dead-ends removed, so a chased player always has
   an alternative.
 
@@ -113,7 +113,9 @@ crashes on a bad input.
 | ----------- | -------------- | ----------------------------------------------- |
 | `SEED`      | random         | Integer seed; the same seed always rebuilds the same maze |
 
-`PERFECT` accepts `True` or `False` (case insensitive).
+`PERFECT` accepts `True` or `False` (case insensitive). The maze is at most
+1000×1000 cells, and a `PERFECT=False` board cannot be 2×2: such a grid can
+hold only one loop, while a playable board needs two.
 
 The default file is [`config.txt`](config.txt):
 
@@ -140,7 +142,7 @@ of the **closed** walls of that cell:
 | 3         | 8     | West      |
 
 So `3` (`0011`) means north and east are closed, south and west are open;
-`a` (`1010`) means east and west are closed; `f` means the cell is fully
+`A` (`1010`) means east and west are closed; `F` means the cell is fully
 closed — that is how the “42” pattern is stored.
 
 After the rows come an empty line and three more lines: the entry
@@ -148,14 +150,14 @@ coordinates, the exit coordinates, and the shortest path written with the
 letters `N`, `E`, `S`, `W`. Every line ends with `\n`.
 
 ```
-9155551395515555555555393
-ac3ff96c2ff83ffffffff946a
+9515153955155555513911513
+A945692C3943955156AAAC3AA
 ...
-c555455556c46c456c46c5556
+C6C456C56C6C55545556C5456
 
 0,0
 24,16
-EEEEEEESENEEESESSEESSSWWSWSESSSSSSSESENEEESENEESEEEE
+SSSSEESSEEEEESSWWSSENEESSENESSESENESENEESSSWSEEEENESEEEE
 ```
 
 Neighbouring cells always agree on the wall they share: walls are only ever
@@ -177,9 +179,10 @@ The generation runs in four stages:
 1. **Place the “42”.** The digits are drawn from a 4×7 bitmap font (9×7
    cells in all), never touching the border, never covering the entry, the
    exit, a corner or the centre. The chosen placement must leave every remaining cell connected.
-   Those cells stay at `f`, fully closed, and the maze is simply carved
-   *around* them. If the maze is too small to hold the pattern, it is
-   skipped and a message is printed on the console.
+   Those cells stay at `F`, fully closed, and the maze is simply carved
+   *around* them. If the maze is too small to hold the pattern (less than
+   11×9 cells), or if the entry and the exit leave no room for it, it is
+   skipped and an error message is printed on the console.
 2. **Carve a spanning tree** over every cell outside the pattern with the
    recursive backtracker. At this point the maze is perfect, and the work is
    over when `PERFECT=True`.
@@ -256,7 +259,7 @@ It is published as a pip package at the root of this repository:
 * `mazegen-1.0.0-py3-none-any.whl`
 
 Everything needed to rebuild it is in the repository
-([`pyproject.toml`](pyproject.toml)); `make build` regenerates both files.
+([`pyproject.toml`](pyproject.toml)); `make build` regenerates the wheel.
 
 ```bash
 python3 -m venv venv && source venv/bin/activate
@@ -415,15 +418,16 @@ unnoticed.
 ├── config.txt                        # default configuration
 ├── pyproject.toml                    # package build configuration
 ├── Makefile
+├── .flake8                           # flake8 excludes (.venv, build, ...)
 ├── LICENSE.md                        # MIT, and why
 ├── README.md                         # this file (English)
 └── README.ja.md                      # Japanese translation
 ```
 
-Only the files required by the subject are committed: no tool
-configuration file of our own, no cache, no build leftover. The
-development tools and the flake8 excludes live in the `Makefile` itself, so
-that nothing outside this list has to be tracked. The test programs are
+Only the files required by the subject are committed, plus `.gitignore`
+and `.flake8`: no cache, no build leftover. `.flake8` tells flake8 to skip
+the virtual environment created by `make install`, so that the plain
+`flake8 .` asked by the subject checks our sources only. The test programs are
 deliberately absent ("not submitted or graded"), and so is
 `maze_analyzer.py`, which comes *with* the subject rather than from us.
 Copy it next to the `Makefile` to use `make analyze`.
@@ -441,9 +445,9 @@ Copy it next to the `Makefile` to use `make analyze`.
 
 | Step | Planned                                   | What actually happened |
 | ---- | ----------------------------------------- | ---------------------- |
-| 1    | Config parsing and error handling         | Done first, as planned. The same range checks (size, entry/exit) were later repeated in `MazeGenerator` so that the module stays safe when used without the config file. |
+| 1    | Config parsing and error handling         | Done first, as planned. The range checks (size, entry/exit) were later moved into `MazeGenerator` (`mazegen/validation.py`), so that the module stays safe when used without the config file and the rules live in one place. |
 | 2    | Perfect maze generation + output file     | Started with the recursive backtracker only. Prim and Kruskal were added afterwards as a bonus, once `check()` could verify every algorithm automatically. |
-| 3    | “42” pattern                              | Took longer than planned: the first 3×5 font left one-cell pockets that the braiding could not open. Replaced by a 4×7 font that scales with the grid, placed so that the rest of the maze stays connected. |
+| 3    | “42” pattern                              | Took longer than planned: the first 3×5 font left one-cell pockets that the braiding could not open. Replaced by a 4×7 font, placed so that the rest of the maze stays connected. |
 | 4    | Braiding for the Pac-Man mode             | Done after the perfect maze, as planned. Braiding removes dead-ends and only opens a wall when no 3×3 open area appears; a final pass guarantees at least two loops. The subject's `maze_analyzer.py` was wired into the tests to confirm it. |
 | 5    | Terminal rendering and menu               | The terminal renderer and its menu were done as planned. A MiniLibX window was added as an option, sharing the same canvas and colour themes; as the subject's wheels are Linux-only, it falls back to the terminal when `mlx` is unavailable. |
 | 6    | Packaging, README, licence                | The wheel, the MIT licence and the README came last, as planned. After that, the code was cleaned up for readability, a Japanese README was added, and `mazegen.py` was split into a layered package without changing its public API. Finally, the bonuses (Prim, Kruskal) and the optional features (MiniLibX window, save menu, extra configuration keys) were removed, to keep the submission small and quick to review. |

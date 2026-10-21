@@ -19,8 +19,6 @@ from amazeing.config.values import (
     parse_positive_int,
 )
 
-__all__ = ["ConfigError", "MazeConfig", "load_config"]
-
 
 @dataclass(frozen=True)
 class MazeConfig:

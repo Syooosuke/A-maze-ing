@@ -16,10 +16,10 @@
 from __future__ import annotations
 
 import sys
-from typing import List, Optional
+from typing import List, Optional, TextIO
 
 from amazeing.config import ConfigError, MazeConfig, load_config
-from amazeing.display.menu import run, show
+from amazeing.display import menu
 from amazeing.display.session import Session, report_problems
 from amazeing.output import OutputError, write_maze
 from mazegen import MazeError, MazeGenerator
@@ -47,6 +47,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     except KeyboardInterrupt:
         print("\nInterrupted.", file=sys.stderr)
         return 1
+    except Exception as error:  # 想定外のエラーでもトレースバックは出さない
+        print(f"Error: unexpected failure: {error}", file=sys.stderr)
+        return 1
     return 0
 
 
@@ -55,19 +58,17 @@ def run_program(config_path: str) -> None:
     config = load_config(config_path)
     generator = build_generator(config)
     generator.generate()
-    if generator.pattern_warning is not None:
-        print(f"Warning: {generator.pattern_warning}", file=sys.stderr)
     report_problems(generator)
 
     write_maze(config.output_file, generator)
     print(f"Maze written to {config.output_file}")
 
     # 出力が端末でない（ファイルやパイプ）ときは、色を使わず ASCII で描く。
-    session = Session(generator, colour=sys.stdout.isatty())
-    if sys.stdin.isatty():
-        run(session)
+    session = Session(generator, colour=is_terminal(sys.stdout))
+    if is_terminal(sys.stdin):
+        menu.run(session)
     else:
-        show(session)  # パイプやリダイレクトのときは表示だけして終わる
+        menu.show(session)  # パイプやリダイレクトのときは表示だけして終わる
 
 
 def build_generator(config: MazeConfig) -> MazeGenerator:
@@ -84,6 +85,14 @@ def build_generator(config: MazeConfig) -> MazeGenerator:
         perfect=config.perfect,
         seed=config.seed,
     )
+
+
+def is_terminal(stream: Optional[TextIO]) -> bool:
+    """stream が端末につながっているかを返す。
+
+    標準入出力が閉じられていると、Python はそれを None にする。
+    """
+    return stream is not None and stream.isatty()
 
 
 if __name__ == "__main__":
