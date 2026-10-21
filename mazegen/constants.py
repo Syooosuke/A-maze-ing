@@ -49,11 +49,11 @@ MAX_SIZE: int = 1000
 # Pac-Man 盤（PERFECT=False）に必要な、独立したループの最小数。
 MIN_LOOPS: int = 2
 
-# Pac-Man 盤で許す行き止まりの数（subject は「2 つ程度までなら許容」）。
+# Pac-Man 盤で許す行き止まりの数（subject は "a couple are tolerated"）。
 MAX_DEAD_ENDS: int = 2
 
-# random_seed() が引くシードは 32 ビットに収める。再現用に設定ファイル
-# へ書き写しやすい（利用者が指定するシードは、どんな整数でもよい）。
+# random_seed() が引くシードは 32 ビットに収める。設定ファイルへ書き写して
+# 再現しやすくするため（利用者が指定するシードは、どんな整数でもよい）。
 SEED_LIMIT: int = 2 ** 32
 
 

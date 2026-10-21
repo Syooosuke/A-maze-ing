@@ -17,7 +17,7 @@ def find_problems(
     grid: Grid, region: List[Coord], pattern_cells: Set[Coord],
     perfect: bool,
 ) -> List[str]:
-    """迷路が満たしていない要件を、読める文で列挙する。
+    """迷路が満たしていない要件を、人が読める英文で列挙する。
 
     Returns:
         見つかった問題点。すべて満たしていれば空のリスト。

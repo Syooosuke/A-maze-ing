@@ -78,7 +78,7 @@ class MazeGenerator:
         self.seed_used = seed
         rng = random.Random(seed)
 
-        # 1. 壁がすべて閉じた格子に、"42" のパターンの場所を決める。
+        # 1. 壁がすべて閉じた格子を作り直し、「42」の置き場所を決める。
         self._grid = Grid(self.width, self.height)
         self.grid = self._grid.walls
         reserved = {self.entry, self.exit}

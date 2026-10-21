@@ -12,7 +12,7 @@ EXIT=18,10
 OUTPUT_FILE=maze.txt
 
 # True  -> perfect maze: exactly one path between entry and exit.
-# False -> playable Pac-Man like board: loops, (almost) no dead-end.
+# False -> playable Pac-Man-like board: loops, (almost) no dead-end.
 PERFECT=False
 
 # --- Optional keys --------------------------------------------------
