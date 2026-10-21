@@ -6,7 +6,8 @@ from typing import List, Set
 
 from .routes import count_components, dead_ends, loop_count
 from ..constants import (
-    ALL_WALLS, EAST, MIN_LOOPS, NORTH, OPPOSITE, SOUTH, WEST, Coord,
+    ALL_WALLS, EAST, MAX_DEAD_ENDS, MIN_LOOPS, NORTH, OPPOSITE, SOUTH, WEST,
+    Coord,
 )
 from ..grid import Grid
 from ..generation.pattern import landmarks
@@ -110,8 +111,7 @@ def _check_playable(
         if cell in pattern_cells or grid.degree(cell) == 0:
             problems.append(f"the {name} is not an open corridor")
     ends = dead_ends(grid, region)
-    # subject は「行き止まりは 2 つ程度までなら許容」としている。
-    if len(ends) > 2:
+    if len(ends) > MAX_DEAD_ENDS:
         listed = ", ".join(f"{x},{y}" for x, y in ends[:5])
         problems.append(
             f"a playable board should not keep {len(ends)} "

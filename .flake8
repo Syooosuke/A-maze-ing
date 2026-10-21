@@ -1,3 +1,3 @@
 [flake8]
-# 仮想環境とビルドの生成物は、私たちのソースではないので検査しない。
+# The virtual environment and the build artefacts are not our sources.
 extend-exclude = .venv,venv,build,dist

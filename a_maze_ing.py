@@ -21,7 +21,7 @@ import os
 import sys
 from typing import List, Optional, TextIO
 
-from amazeing.config import ConfigError, MazeConfig, load_config
+from amazeing.config import ConfigError, load_config
 from amazeing.display import menu
 from amazeing.display.render import can_draw_blocks
 from amazeing.display.session import Session, report_problems
@@ -34,7 +34,8 @@ USAGE = "Usage: python3 a_maze_ing.py <config file>"
 def main(argv: Optional[List[str]] = None) -> int:
     """プログラムの入口。終了ステータス（成功なら 0、エラーなら 1）を返す。
 
-    想定内のエラーはすべてここで捕まえ、"Error: ..." の 1 行を表示する。
+    エラーはすべてここで捕まえ、トレースバックを出さずに 1 行で知らせる。
+    出力先のパイプが先に閉じられたときだけは、何も表示せずに終わる。
     """
     args = sys.argv if argv is None else argv
     if len(args) != 2:
@@ -48,9 +49,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         if sys.stdout is not None:
             sys.stdout.flush()  # 書き出しの失敗を、ここで捕まえるため
     except BrokenPipeError:
-        # 出力先（パイプ）が先に閉じられた。もう何も表示できないので、
-        # 終了時に Python が出す警告も防ぐため、標準出力を捨て先に向ける。
-        os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        _silence_output()
         return 1
     except (ConfigError, MazeError, OutputError, OSError) as error:
         print(f"Error: {error}", file=sys.stderr)
@@ -67,34 +66,8 @@ def main(argv: Optional[List[str]] = None) -> int:
 def run_program(config_path: str) -> None:
     """設定を読み、迷路を生成し、書き出して表示する。"""
     config = load_config(config_path)
-    generator = build_generator(config)
-    generator.generate()
-    report_problems(generator)  # "42" を描けなかった理由と check() の結果
-
-    write_maze(config.output_file, generator)
-    print(f"Maze written to {config.output_file}")
-
-    # 出力が端末でない（ファイルやパイプ）ときや、端末が "██" を表示でき
-    # ないときは、色を使わず ASCII で描く。
-    stdout = sys.stdout
-    colour = (
-        stdout is not None and stdout.isatty()
-        and can_draw_blocks(stdout.encoding)
-    )
-    session = Session(generator, colour=colour)
-    if is_terminal(sys.stdin) and is_terminal(sys.stdout):
-        menu.run(session)
-    else:
-        menu.show(session)  # パイプやリダイレクトのときは表示だけして終わる
-
-
-def build_generator(config: MazeConfig) -> MazeGenerator:
-    """設定の内容どおりの MazeGenerator を作る（まだ生成はしない）。
-
-    Raises:
-        MazeError: 設定では迷路を作れない場合。
-    """
-    return MazeGenerator(
+    # 迷路として作れない設定（大きさ、入口と出口の位置）なら MazeError。
+    generator = MazeGenerator(
         width=config.width,
         height=config.height,
         entry=config.entry,
@@ -102,6 +75,19 @@ def build_generator(config: MazeConfig) -> MazeGenerator:
         perfect=config.perfect,
         seed=config.seed,
     )
+    generator.generate()
+    write_maze(config.output_file, generator)
+    print(f"Maze written to {config.output_file}")
+    report_problems(generator)  # "42" を描けなかった理由と check() の結果
+
+    # 出力が端末でない（ファイルやパイプ）ときや、端末が "██" を表示でき
+    # ないときは、色を使わず ASCII で描く。
+    colour = is_terminal(sys.stdout) and can_draw_blocks(sys.stdout.encoding)
+    session = Session(generator, colour=colour)
+    if is_terminal(sys.stdin) and is_terminal(sys.stdout):
+        menu.run(session)
+    else:
+        menu.show(session)  # パイプやリダイレクトのときは表示だけして終わる
 
 
 def is_terminal(stream: Optional[TextIO]) -> bool:
@@ -110,6 +96,21 @@ def is_terminal(stream: Optional[TextIO]) -> bool:
     標準入出力が閉じられていると、Python はそれを None にする。
     """
     return stream is not None and stream.isatty()
+
+
+def _silence_output() -> None:
+    """出力先のパイプが先に閉じられたときに、標準出力と標準エラーを捨てる。
+
+    そのままだと、終了時に Python が出力を flush し直し、BrokenPipeError
+    の警告を出して終了ステータス 120 で終わる。/dev/null に向け直して防ぐ。
+    """
+    devnull = os.open(os.devnull, os.O_WRONLY)
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            os.dup2(devnull, stream.fileno())
+        except (AttributeError, OSError, ValueError):
+            pass  # 閉じられている（None）か、本物のファイルではない
+    os.close(devnull)
 
 
 if __name__ == "__main__":

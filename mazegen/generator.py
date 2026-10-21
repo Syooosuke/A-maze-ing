@@ -89,7 +89,9 @@ class MazeGenerator:
         #    これで完全迷路（ループのない迷路）になる。
         carve_backtracker(self._grid, self._region, rng)
 
-        # 3. Pac-Man 盤なら、行き止まりをなくしてループを 2 つ以上にする。
+        # 3. Pac-Man 盤なら、行き止まりをなくし、ループを MIN_LOOPS 個以上に
+        #    する。行き止まりをなくすだけでたいてい十分なループができる
+        #    （25x17 で 41 個）ので、add_loops は何もしないことが多い。
         if not self.perfect:
             braiding.remove_dead_ends(self._grid, self._region, rng)
             braiding.add_loops(self._grid, self._region, rng, MIN_LOOPS)

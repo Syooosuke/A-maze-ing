@@ -16,7 +16,8 @@ RANDOM_ATTEMPTS = 25
 def landmarks(width: int, height: int) -> Dict[str, Coord]:
     """四隅と中央のセルを返す。"42" はどちらのモードでもここを塞がない。
 
-    Pac-Man 盤の要件（四隅と中央は通路）のため。
+    四隅と中央を通路にするのは Pac-Man 盤の要件。完全迷路でも同じように
+    空けておき、モードによって "42" の置き場所が変わらないようにしている。
     """
     return {
         "north-west corner": (0, 0),

@@ -75,8 +75,9 @@ make help
 
 ### Interactive menu
 
-The maze is displayed in the terminal. When the standard input is a
-terminal, the program then shows a menu:
+The maze is displayed in the terminal. When both the standard input and
+the standard output are terminals, the program then shows a menu
+(otherwise it only prints the maze and exits):
 
 ```
 === A-Maze-ing ===
@@ -87,9 +88,9 @@ terminal, the program then shows a menu:
 ```
 
 Colours are 256-colour ANSI codes. They are disabled automatically when the
-output is redirected to a file or a pipe — the rendering then falls back to
-plain ASCII (`##` walls, `EE` entry, `XX` exit, `%%` for the
-“42”, `..` for the path).
+output is redirected to a file or a pipe, or when the terminal's encoding
+cannot display `██` — the rendering then falls back to plain ASCII (`##`
+walls, `EE` entry, `XX` exit, `%%` for the “42”, `..` for the path).
 
 ## Configuration file
 
@@ -182,8 +183,8 @@ The generation runs in four stages:
 1. **Place the “42”.** The digits are drawn from a 4×7 bitmap font (9×7
    cells in all), never touching the border, never covering the entry, the
    exit, a corner or the centre. The chosen placement must leave every
-   remaining cell connected. Those cells stay at `F`, fully closed, and the maze is simply carved
-   *around* them. If the maze is too small to hold the pattern (less than
+   remaining cell connected. Those cells stay at `F`, fully closed, and the
+   maze is simply carved *around* them. If the maze is too small to hold the pattern (less than
    11×9 cells), or if the entry and the exit leave no room for it, it is
    skipped and an error message is printed on the console.
 2. **Carve a spanning tree** over every cell outside the pattern with the
@@ -243,15 +244,19 @@ Both modes get the verdict the subject asks for:
 
 ```
 # PERFECT=False
-Verdict: Pac-Man-USABLE: fully connected, corners and centre reachable, ...
+Verdict: Pac-Man-USABLE: fully connected, corners and centre reachable,
+         41 independent routes; ...
 
 # PERFECT=True
 Verdict: PERFECT maze: a single path, no loop -> matches PERFECT=True
 ```
 
+The analyzer calls our loops "independent routes": both count the same
+thing.
+
 The analyzer is also wired into our local test suite: mazes of different
-sizes and seeds are generated and required to reach those verdicts. That suite is not
-committed — the subject states the test programs are "not submitted or
+sizes and seeds are generated and required to reach those verdicts. That
+suite is not committed — the subject states the test programs are "not submitted or
 graded" — but `make test` runs it whenever a `tests/` directory is present.
 
 ## What is reusable, and how
@@ -397,7 +402,7 @@ unnoticed.
 │   ├── generator.py                  # MazeGenerator: the generation steps
 │   ├── validation.py                 # checks of the constructor arguments
 │   ├── grid.py                       # Grid: cells and their walls
-│   ├── constants.py                  # wall bits, directions, size limits
+│   ├── constants.py                  # wall bits, directions, size range
 │   ├── errors.py                     # MazeError
 │   ├── generation/                   # building the maze
 │   │   ├── pattern.py                # where the "42" goes
@@ -455,7 +460,7 @@ Copy it next to the `Makefile` to use `make analyze`.
 | 3    | “42” pattern                              | Took longer than planned: the first 3×5 font left one-cell pockets that the braiding could not open. Replaced by a 4×7 font, placed so that the rest of the maze stays connected. |
 | 4    | Braiding for the Pac-Man mode             | Done after the perfect maze, as planned. Braiding removes dead-ends and only opens a wall when no 3×3 open area appears; a final pass guarantees at least two loops. The subject's `maze_analyzer.py` was wired into the tests to confirm it. |
 | 5    | Terminal rendering and menu               | The terminal renderer and its menu were done as planned. A MiniLibX window was added as an option, sharing the same canvas and colour themes; as the subject's wheels are Linux-only, it falls back to the terminal when `mlx` is unavailable. |
-| 6    | Packaging, README, licence                | The wheel, the MIT licence and the README came last, as planned. After that, the code was cleaned up for readability, a Japanese README was added, and `mazegen.py` was split into a layered package without changing its public API (unused public methods and re-exports were dropped later). Finally, the bonuses (Prim, Kruskal) and the optional features (MiniLibX window, save menu, extra configuration keys) were removed, to keep the submission small and quick to review. |
+| 6    | Packaging, README, licence                | The wheel, the MIT licence and the README came last, as planned. After that, the code was cleaned up for readability, a Japanese README was added, and `mazegen.py` was split into a layered package without changing its public API. Finally, the bonuses (Prim, Kruskal) and the optional features (MiniLibX window, save menu, extra configuration keys) were removed, to keep the submission small and quick to review; unused public methods and re-exports were dropped afterwards. |
 
 ### What worked well, what could be improved
 
