@@ -7,15 +7,21 @@ from .errors import MazeError
 
 
 def check_types(
-    width: object, height: object, entry: object, exit: object
+    width: object, height: object, entry: object, exit: object,
+    perfect: object, seed: object,
 ) -> None:
     """引数の型が違えば MazeError を送出する（"20" や [0, 0] など）。
 
     型の誤りも、ほかの誤りと同じ MazeError で知らせるため。引数は実行時に
-    何が来てもよいよう object で受ける。exit は省略（None）してよい。
+    何が来てもよいよう object で受ける。exit と seed は省略（None）してよい。
     """
     if not _is_int(width) or not _is_int(height):
         raise MazeError("width and height must be integers")
+    # "False" のような文字列は真として扱われてしまうので、bool だけを認める。
+    if not isinstance(perfect, bool):
+        raise MazeError("perfect must be True or False")
+    if seed is not None and not _is_int(seed):
+        raise MazeError("seed must be an integer")
     pairs = [("ENTRY", entry)]
     if exit is not None:
         pairs.append(("EXIT", exit))
