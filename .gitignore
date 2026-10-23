@@ -24,7 +24,7 @@ mazegen-*.tar.gz
 # Not part of the submission (see the subject):
 #  - the test programs are "not submitted or graded"
 #  - these two files are provided with the subject, not by us
-#    (this version does not use the MiniLibX archive)
+#    (the display is terminal only, so the MiniLibX archive is not used)
 tests/
 maze_analyzer.py
 mlx-2.2.tgz

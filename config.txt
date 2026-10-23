@@ -11,11 +11,11 @@ ENTRY=0,0
 EXIT=18,10
 OUTPUT_FILE=maze.txt
 
-# True  -> perfect maze: exactly one path between entry and exit.
-# False -> playable Pac-Man-like board: loops, (almost) no dead-end.
+# True: perfect maze, only one path from entry to exit
+# False: Pac-Man-like board with loops and almost no dead-ends
 PERFECT=False
 
 # --- Optional keys --------------------------------------------------
 
-# Seed of the random generator; remove it for a different maze each run.
+# Random seed. Remove it to get a different maze every run.
 SEED=42

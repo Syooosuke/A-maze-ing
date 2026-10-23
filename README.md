@@ -12,8 +12,8 @@ hexadecimal digit that says which of its walls are closed.
 
 The `PERFECT` key chooses between two kinds of maze:
 
-* `PERFECT=True`: a perfect maze. There is exactly one path between the
-  entry and the exit, and no loop anywhere.
+* `PERFECT=True`: a perfect maze. There is only one path from the entry to
+  the exit, and no loops.
 * `PERFECT=False` (what `config.txt` uses): a board for a Pac-Man-like
   game. Every corridor can be reached, the four corners and the centre are
   corridors, there are at least two loops, and there are almost no
@@ -24,13 +24,13 @@ and the shortest path from the entry to the exit is written to the output
 file.
 
 The maze generator itself is a separate package, `mazegen/`. It is shipped
-as `mazegen-1.0.0-py3-none-any.whl`, so another project can simply
+as `mazegen-1.0.0-py3-none-any.whl`, so another project can
 `pip install` it.
 
 ## Instructions
 
-You need Python 3.10 or later. The program only uses the standard library;
-`make install` just installs the development tools (flake8, mypy, pytest,
+You need Python 3.10 or later. The program only uses the standard library.
+`make install` only installs the development tools (flake8, mypy, pytest,
 build).
 
 ```bash
@@ -138,8 +138,8 @@ tells which walls of the cell are closed:
 | 3       | 8     | West      |
 
 For example `3` (`0011`) means north and east are closed, and `A` (`1010`)
-means east and west are closed. `F` is a fully closed cell; that is what the
-"42" is made of.
+means east and west are closed. `F` is a fully closed cell. The "42" is made
+of these.
 
 After the rows there is an empty line, then the entry, the exit and the
 shortest path written with `N`, `E`, `S` and `W`. Every line ends with `\n`.
@@ -166,8 +166,8 @@ about the wall between them.
 The maze is carved with the recursive backtracker (a randomised depth-first
 search). It uses an explicit stack instead of recursion, so even a
 1000×1000 maze does not hit Python's recursion limit. The backtracker
-builds a spanning tree of the corridor cells, and a spanning tree is exactly
-a perfect maze.
+builds a spanning tree of the corridor cells, and a spanning tree is a
+perfect maze.
 
 The maze is built in four steps:
 
@@ -193,15 +193,14 @@ The maze is built in four steps:
 
 * The backtracker makes long, winding corridors, which looks like a real
   maze. We also looked at Prim and Kruskal, but they tend to give lots of
-  short branches. The backtracker is also easy to follow, which helps when
-  we have to explain it during the evaluation.
-* It runs in time proportional to the number of cells. To avoid the "42" we
-  simply never treat its cells as neighbours.
-* Because we first build a tree and then braid it, both modes come from the
-  same code: the perfect maze is just an earlier state of the Pac-Man board.
+  short branches. It is also easy to follow.
+* It runs in time proportional to the number of cells. To avoid the "42",
+  we just don't treat its cells as neighbours.
+* We first build a tree and then braid it, so both modes use the same code.
+  The perfect maze is just the Pac-Man board before braiding.
 
-The downside is that a backtracker maze has a lot of dead-ends, which is why
-step 3 matters so much for the Pac-Man board.
+The downside is that a backtracker maze has a lot of dead-ends, so the
+Pac-Man board needs step 3.
 
 ### Checking the result
 
@@ -215,8 +214,8 @@ something is wrong.
 ### Checking with the subject's maze_analyzer.py
 
 We also check the output with `maze_analyzer.py`, which comes with the
-subject. It is not in this repository because it is not ours; put it next
-to the `Makefile` to use it.
+subject. It is not ours, so it is not in this repository. Put it next to the
+`Makefile` to use it.
 
 ```bash
 make analyze
@@ -250,8 +249,8 @@ the repository:
 
 * `mazegen-1.0.0-py3-none-any.whl`
 
-Everything needed to rebuild it ([`pyproject.toml`](pyproject.toml)) is in
-the repository, and `make build` rebuilds the wheel.
+[`pyproject.toml`](pyproject.toml) is in the repository too, so
+`make build` can rebuild the wheel.
 
 ```bash
 python3 -m venv .venv && . .venv/bin/activate
@@ -264,6 +263,11 @@ pip install dist/mazegen-1.0.0-py3-none-any.whl
 [`a_maze_ing.py`](a_maze_ing.py) and [`amazeing/`](amazeing/)
 (configuration, output file, display, menu) belong to this program only and
 are not in the package.
+
+Inside the package, `Grid` holds the cells and walls, and the functions in
+`generation/` (building) and `analysis/` (checking) work on it.
+`MazeGenerator.generate()` calls them in order, so it shows the whole
+generation flow.
 
 ### Create a maze
 
@@ -283,7 +287,7 @@ gen = MazeGenerator(
     entry=(0, 0),        # (x, y), (0, 0) if omitted
     exit=(30, 20),       # (x, y), bottom-right corner if omitted
     perfect=False,       # False (the default) gives a Pac-Man board
-    seed=1234,           # random if omitted; the seed used is gen.seed_used
+    seed=1234,           # random if omitted, kept in gen.seed_used
 )
 gen.generate()
 ```
@@ -294,8 +298,7 @@ with another seed.
 
 A size out of range, an entry or exit outside the maze, the same cell for
 entry and exit, a 2×2 Pac-Man board or a value of the wrong type (such as
-`"20"` or `[0, 0]`) raises `mazegen.MazeError`. Like the subject's
-`PERFECT` flag, `perfect` is `False` when omitted.
+`"20"` or `[0, 0]`) raises `mazegen.MazeError`.
 
 ### Read the result
 
@@ -307,7 +310,7 @@ gen.grid[4][3] & EAST # non-zero if cell (3, 4) has its east wall closed
 
 gen.pattern_cells     # the cells of the "42"
 gen.pattern_warning   # why the "42" was skipped, or None
-gen.seed_used         # the seed used; it builds the same maze again
+gen.seed_used         # the seed used, to build the same maze again
 
 gen.solution          # shortest path from entry to exit [(0, 0), (1, 0), ...]
 gen.directions        # the same path as letters "EEESSEES..."
@@ -357,16 +360,14 @@ A shorter version of this is in the package docstring (`pydoc mazegen` or
 
 We used AI (Claude) for:
 
-* comparing the backtracker, Prim and Kruskal before choosing an algorithm;
+* comparing the backtracker, Prim and Kruskal before choosing an algorithm
 * first drafts of the configuration reader (`amazeing/config/`), the error
   handling, the `Makefile` and `pyproject.toml`, which we then read and
-  fixed;
-* finding why the first 3×5 glyphs left dead-ends inside the "42"; we
-  switched to 4×7 glyphs (`mazegen/generation/glyphs.py`);
+  fixed
+* finding why the first 3×5 glyphs left dead-ends inside the "42" (we
+  switched to 4×7 glyphs, `mazegen/generation/glyphs.py`)
 * splitting the code into files by role (`mazegen/`, `amazeing/`) and
-  reviewing the code and this README before submitting.
-
-We read and checked everything it suggested before using it.
+  reviewing the code and this README
 
 ## Project structure
 
@@ -430,23 +431,28 @@ committed. `.flake8` is there so that `flake8 .` does not go into the
 | Step | Plan                                  | What happened |
 | ---- | ------------------------------------- | ------------- |
 | 1    | Config parsing and error handling     | Done first, as planned. The size and entry/exit checks were later moved into `MazeGenerator` (`mazegen/validation.py`). |
-| 2    | Perfect maze and output file          | Done with the backtracker. We also wrote Prim and Kruskal as a bonus along the way. |
+| 2    | Perfect maze and output file          | Done with the backtracker. |
 | 3    | The "42"                              | Took longer than planned. The 3×5 glyphs left dead-ends, so we switched to 4×7. |
 | 4    | Pac-Man board (braiding)              | Done after the perfect maze, as planned, with the 3×3 check and the "at least two loops" step. |
-| 5    | Terminal display and menu             | Done as planned. We also made a MiniLibX window, but removed it in step 6. |
-| 6    | Package, README, licence              | Wheel, licence and README came last. After that we split the code into files by role, removed the bonuses (Prim, Kruskal) and the extra features like MiniLibX for the submission, and went over everything once more. |
+| 5    | Terminal display and menu             | Done as planned. |
+| 6    | Package, README, licence              | Wheel, licence and README came last. After that we split the code into files by role and went over everything once more. |
 
 ### What worked, what could be better
 
-* Worked: keeping `mazegen` separate from the display and the configuration
-  from the start. Making the package and testing it on its own was easy.
-* Worked: writing `check()` early, so we could check the subject's rules
-  directly. Generating lots of random mazes is also how we found the
-  dead-ends caused by the "42" glyphs.
-* Worked: using the subject's `maze_analyzer.py` in our tests, so we never
-  had to guess the Pac-Man rules.
-* Could be better: braiding picks which wall to open in a simple way; with
-  more work the boards could look more like a real Pac-Man level.
+What worked:
+
+* Keeping `mazegen` separate from the display and the configuration from
+  the start. Making the package and testing it on its own was easy.
+* Writing `check()` early, so we could check the subject's rules directly.
+  Generating lots of random mazes is also how we found the dead-ends caused
+  by the "42" glyphs.
+* Using the subject's `maze_analyzer.py` in our tests, so we never had to
+  guess the Pac-Man rules.
+
+What could be better:
+
+* Braiding picks which wall to open in a simple way. With more work the
+  boards could look more like a real Pac-Man level.
 
 ### Tools
 
