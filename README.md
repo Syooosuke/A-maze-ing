@@ -425,7 +425,7 @@ committed. `.flake8` is there so that `flake8 .` does not go into the
 | `atajima` | generation algorithms and the reusable module       |
 | `syokota` | configuration parsing, output file, error handling  |
 
-### Planning, and how it went
+### Planning and how it went
 
 | Step | Plan                                  | What happened |
 | ---- | ------------------------------------- | ------------- |
