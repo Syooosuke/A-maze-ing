@@ -16,8 +16,8 @@ The `PERFECT` key chooses between two kinds of maze:
   the exit, and no loops.
 * `PERFECT=False` (what `config.txt` uses): a board for a Pac-Man-like
   game. Every corridor can be reached, the four corners and the centre are
-  corridors, there are at least two loops, and there are almost no
-  dead-ends (usually none).
+  corridors, there are at least two loops, and walls are opened so
+  that no dead-ends are left.
 
 In both modes a "42" made of fully closed cells is drawn inside the maze,
 and the shortest path from the entry to the exit is written to the output
@@ -194,20 +194,17 @@ The maze is built in four steps:
 * The backtracker makes long, winding corridors, which looks like a real
   maze. We also looked at Prim and Kruskal, but they tend to give lots of
   short branches. It is also easy to follow.
-* It runs in time proportional to the number of cells. To avoid the "42",
-  we just don't treat its cells as neighbours.
+* It runs in time proportional to the number of cells. The "42" cells are
+  never part of the cells we carve, so nothing special is needed to avoid
+  them.
 * We first build a tree and then braid it, so both modes use the same code.
-  The perfect maze is just the Pac-Man board before braiding.
-
-The downside is that a backtracker maze has a lot of dead-ends, so the
-Pac-Man board needs step 3.
 
 ### Checking the result
 
 `MazeGenerator.check()` checks a generated maze against the subject: closed
 outer walls, matching walls between neighbours, full connectivity, closed
 "42" cells, no open 3×3 area, no loop for a perfect maze, and for a Pac-Man
-board at least two loops, open corners and centre and almost no dead-ends.
+board at least two loops, open corners and centre and at most two dead-ends.
 The program runs it after every generation and prints a warning if
 something is wrong.
 
