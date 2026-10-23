@@ -27,8 +27,7 @@
 ## 実行方法
 
 Python 3.10 以上が必要です。プログラム自体は標準ライブラリだけで動きます。
-`make install` で入れるのは開発用のツール（flake8、mypy、pytest、build）
-だけです。
+`make install` で入れるのは開発用のツール（flake8、mypy、build）だけです。
 
 ```bash
 # 開発用のツールを .venv に入れる
@@ -47,9 +46,6 @@ make debug
 # flake8 と mypy（subject で指定されたオプション）
 make lint
 make lint-strict     # flake8 と mypy --strict
-
-# テスト（tests/ は提出物に含めていないので、手元にあるときだけ動く）
-make test
 
 # wheel を作り直す（make install のあとで）
 make build
@@ -444,7 +440,7 @@ AI（Claude）は次のことに使いました。
 ### 使ったツール
 
 * Git
-* make（install、run、debug、lint、test、build をまとめるため）
+* make（install、run、debug、lint、build をまとめるため）
 * flake8、mypy（`--strict` でも通ります）
 * pytest
 * build、setuptools（wheel を作るため）
