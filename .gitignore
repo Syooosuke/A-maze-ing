@@ -21,11 +21,10 @@ dist/
 *.egg-info/
 mazegen-*.tar.gz
 
-# Not part of the submission (see the subject):
-#  - the test programs are "not submitted or graded"
-#  - these two files are provided with the subject, not by us
-#    (the display is terminal only, so the MiniLibX archive is not used)
-tests/
+# Provided with the subject, not by us
+# (the display is terminal only, so the MiniLibX archive is not used).
+# On this "test" branch tests/ is tracked to share the tests in the team;
+# it is never merged into main, which is the submitted version.
 maze_analyzer.py
 mlx-2.2.tgz
 
