@@ -9,7 +9,7 @@ description = "A small, dependency-free maze generator and solver."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE.md" }
-authors = [{ name = "A-Maze-ing team" }]
+authors = [{ name = "syokota" }, { name = "atajima" }]
 keywords = ["maze", "generator", "labyrinth", "42", "pacman"]
 classifiers = [
     "Programming Language :: Python :: 3",
