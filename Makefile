@@ -8,21 +8,21 @@ OUTPUT  ?= maze.txt
 
 # Development tools. They are not runtime dependencies: the project only
 # needs the Python standard library to run.
-DEV_TOOLS  := build flake8 mypy pytest
+DEV_TOOLS  := build flake8 mypy
 
 MYPY_FLAGS := --warn-return-any --warn-unused-ignores \
               --ignore-missing-imports --disallow-untyped-defs \
               --check-untyped-defs
 
 # The lint tools of the virtual environment when "make install" created it,
-# otherwise the ones on the PATH (test and build always use the venv).
+# otherwise the ones on the PATH (build always uses the venv).
 # The directories flake8 must not walk into (.venv, build, ...) are listed
 # in .flake8, so a bare "flake8 ." works too.
 FLAKE8 := $(if $(wildcard $(BIN)/flake8),$(BIN)/flake8,flake8)
 MYPY   := $(if $(wildcard $(BIN)/mypy),$(BIN)/mypy,mypy)
 
 .PHONY: all install run debug analyze clean fclean lint \
-        lint-strict test build re help
+        lint-strict build re help
 
 all: run
 
@@ -56,11 +56,6 @@ lint:
 lint-strict:
 	$(FLAKE8) .
 	$(MYPY) . --strict
-
-## test: run the unit tests (tests/ is not part of the submission)
-test:
-	@test -d tests || { echo "no tests/ directory here."; exit 1; }
-	PYTHONPATH=. $(BIN)/pytest -q tests
 
 ## build: rebuild the pip package and copy the wheel at the root
 build:

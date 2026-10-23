@@ -30,8 +30,7 @@ as `mazegen-1.0.0-py3-none-any.whl`, so another project can
 ## Instructions
 
 You need Python 3.10 or later. The program only uses the standard library.
-`make install` only installs the development tools (flake8, mypy, pytest,
-build).
+`make install` only installs the development tools (flake8, mypy, build).
 
 ```bash
 # install the development tools in .venv
@@ -50,9 +49,6 @@ make debug
 # flake8 and mypy with the options from the subject
 make lint
 make lint-strict     # flake8 and mypy --strict
-
-# tests (tests/ is not part of the submission, so this only works locally)
-make test
 
 # rebuild the wheel (after make install)
 make build
@@ -457,7 +453,7 @@ What could be better:
 ### Tools
 
 * Git
-* make (install, run, debug, lint, test, build)
+* make (install, run, debug, lint, build)
 * flake8 and mypy (`--strict` passes too)
 * pytest
 * build and setuptools for the wheel
