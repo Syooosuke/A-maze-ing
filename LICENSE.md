@@ -9,7 +9,7 @@ licence text. It is short and well known, so we picked it.
 
 ## MIT License
 
-Copyright (c) 2026 the A-Maze-ing team
+Copyright (c) 2026 syokota, atajima
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to
