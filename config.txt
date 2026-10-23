@@ -1,8 +1,8 @@
-# A-Maze-ing -- default configuration file.
+# A-Maze-ing -- example configuration file.
 #
 # One KEY=VALUE pair per line.
 # Lines starting with '#' and empty lines are ignored.
-# Keys are case insensitive, spaces around '=' are trimmed.
+# Keys are not case sensitive. Spaces around '=' are removed.
 
 # --- Mandatory keys -------------------------------------------------
 WIDTH=19

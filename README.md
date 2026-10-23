@@ -7,8 +7,7 @@
 ## Description
 
 This program reads a configuration file, builds a maze, writes it to a file
-and shows it in the terminal. In the output file each cell is one
-hexadecimal digit that says which of its walls are closed.
+and shows it in the terminal.
 
 The `PERFECT` key chooses between two kinds of maze:
 
@@ -19,7 +18,8 @@ The `PERFECT` key chooses between two kinds of maze:
   corridors, there are at least two loops, and walls are opened so
   that no dead-ends are left.
 
-In both modes a "42" made of fully closed cells is drawn inside the maze,
+In both modes a "42" made of fully closed cells is drawn inside the maze
+(if the maze is at least 11×9),
 and the shortest path from the entry to the exit is written to the output
 file.
 
@@ -49,7 +49,7 @@ make debug
 
 # flake8 and mypy with the options from the subject
 make lint
-make lint-strict     # mypy --strict
+make lint-strict     # flake8 and mypy --strict
 
 # tests (tests/ is not part of the submission, so this only works locally)
 make test
@@ -88,9 +88,10 @@ characters instead (`##` walls, `EE` entry, `XX` exit, `%%` for the "42",
 ## Configuration file
 
 One `KEY=VALUE` per line. Empty lines and lines starting with `#` are
-ignored, spaces around `=` are removed and keys are not case sensitive. An
-unknown key, a key given twice, a malformed line or a maze that cannot be
-built prints an error message and exits with status 1.
+ignored, spaces around `=` are removed and keys are not case sensitive. With
+an unknown key, a key given twice, a missing key, a malformed line or a maze
+that cannot be built, the program prints an error message and exits with
+status 1.
 
 ### Mandatory keys
 
@@ -178,13 +179,14 @@ The maze is built in four steps:
    If it is smaller, or if the entry and the exit leave no room, the "42" is
    skipped and an error message is printed.
 2. Carve a spanning tree over every cell outside the "42" with the
-   backtracker. The result is a perfect maze. A tree has no loop, so there
-   is no open 3×3 area (not even 2×2). With `PERFECT=True` step 3 is
-   skipped.
+   backtracker. A tree has no loop, so there is no open 3×3 area (not even
+   2×2).
 3. Braid (only with `PERFECT=False`). Each dead-end (a cell with one open
    wall) gets one more wall opened, again and again until no more can be
-   opened. Then more walls are opened until there are at least two loops. A
-   wall is never opened if that would create an open 3×3 area, so corridors
+   opened. If there are still fewer than two loops, more walls are opened
+   until there are two (in our tests this only happened on very small or
+   thin mazes, such as 2×3 or 12×2). A wall is
+   never opened if that would create an open 3×3 area, so corridors
    are at most two cells wide.
 4. Solve. A breadth-first search finds the shortest path from the entry to
    the exit.
@@ -193,10 +195,8 @@ The maze is built in four steps:
 
 * The backtracker makes long, winding corridors, which looks like a real
   maze. We also looked at Prim and Kruskal, but they tend to give lots of
-  short branches. It is also easy to follow.
-* It runs in time proportional to the number of cells. The "42" cells are
-  never part of the cells we carve, so nothing special is needed to avoid
-  them.
+  short branches. The backtracker's code is also short and easy to follow.
+* It runs in time proportional to the number of cells.
 * We first build a tree and then braid it, so both modes use the same code.
 
 ### Checking the result
@@ -233,8 +233,8 @@ Verdict: PERFECT maze: a single path, no loop -> matches PERFECT=True ...
 
 What the analyzer calls "independent routes" is what we call loops.
 
-Our local tests (`tests/`) also run this script on mazes of many sizes and
-seeds. The subject says tests are "not submitted or graded", so they are not
+Our local tests (`tests/`) also run this script on mazes of several sizes
+and seeds. The subject says tests are "not submitted or graded", so they are not
 committed.
 
 ## What is reusable, and how
@@ -432,7 +432,7 @@ committed. `.flake8` is there so that `flake8 .` does not go into the
 | 3    | The "42"                              | Took longer than planned. The 3×5 glyphs left dead-ends, so we switched to 4×7. |
 | 4    | Pac-Man board (braiding)              | Done after the perfect maze, as planned, with the 3×3 check and the "at least two loops" step. |
 | 5    | Terminal display and menu             | Done as planned. |
-| 6    | Package, README, licence              | Wheel, licence and README came last. After that we split the code into files by role and went over everything once more. |
+| 6    | Package, README, licence              | Wheel, licence and README came after the display. Then we split the code into files by role and went over everything once more. |
 
 ### What worked, what could be better
 
@@ -440,16 +440,17 @@ What worked:
 
 * Keeping `mazegen` separate from the display and the configuration from
   the start. Making the package and testing it on its own was easy.
-* Writing `check()` early, so we could check the subject's rules directly.
-  Generating lots of random mazes is also how we found the dead-ends caused
-  by the "42" glyphs.
+* Writing `check()` early, so every maze we generated was tested against
+  the subject's rules. Running it on random seeds is also how we found the
+  dead-ends caused by the "42" glyphs.
 * Using the subject's `maze_analyzer.py` in our tests, so we never had to
   guess the Pac-Man rules.
 
 What could be better:
 
-* Braiding picks which wall to open in a simple way. With more work the
-  boards could look more like a real Pac-Man level.
+* Braiding just prefers the wall towards the neighbour with the fewest open
+  walls and picks at random otherwise. With more work the boards could look
+  more like a real Pac-Man level.
 
 ### Tools
 
