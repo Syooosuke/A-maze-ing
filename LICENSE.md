@@ -2,10 +2,10 @@
 
 ## Why MIT
 
-We want `mazegen` to be reusable in later projects, like a Pac-Man-like
+We want `mazegen` to be reusable in later projects, such as a Pac-Man-like
 game. MIT lets anyone use, change and share the code, even in a
-closed-source project, as long as they keep the copyright notice. It is
-short and well known, so we picked it.
+closed-source project, as long as they keep the copyright notice and this
+licence text. It is short and well known, so we picked it.
 
 ## MIT License
 
