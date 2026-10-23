@@ -252,7 +252,9 @@ the repository:
 ```bash
 python3 -m venv .venv && . .venv/bin/activate
 pip install mazegen-1.0.0-py3-none-any.whl
-# or rebuild it from the sources (the wheel goes to dist/)
+
+# or, instead of the line above, rebuild it from the sources
+# (the wheel goes to dist/)
 pip install build && python -m build --wheel
 pip install dist/mazegen-1.0.0-py3-none-any.whl
 ```

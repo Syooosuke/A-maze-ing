@@ -20,8 +20,7 @@ def check_types(
     # "False" のような文字列は真として扱われてしまうので、bool だけを認める。
     if not isinstance(perfect, bool):
         raise MazeError("perfect must be True or False")
-    if seed is not None and not _is_int(seed):
-        raise MazeError("seed must be an integer")
+    check_seed(seed)
     pairs = [("ENTRY", entry)]
     if exit is not None:
         pairs.append(("EXIT", exit))
@@ -59,6 +58,12 @@ def check_arguments(
             "a 2x2 maze is too small for a playable board "
             f"(PERFECT=False needs at least {MIN_LOOPS} independent loops)"
         )
+
+
+def check_seed(seed: object) -> None:
+    """seed が整数でも None でもなければ MazeError を送出する。"""
+    if seed is not None and not _is_int(seed):
+        raise MazeError("seed must be an integer")
 
 
 def _is_int(value: object) -> bool:

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""A-Maze-ing -- 設定ファイルから迷路を生成し、保存して表示する。
+"""A-Maze-ing -- 設定ファイルを読んで迷路を作り、書き出して端末に表示する。
 
 使い方::
 
@@ -7,12 +7,12 @@
 
 処理の流れ:
     1. 設定ファイルを読む（amazeing.config）
-    2. 迷路を生成する（mazegen.MazeGenerator）
-    3. OUTPUT_FILE に書き出し（amazeing.output）、「42」を描けなかった理由と
-       自己検査（MazeGenerator.check()）の結果を表示する
-       （display.session.report_problems。メニューで作り直したときにも使う
-       ので display に置いている）
-    4. 端末に表示する。入力も出力も端末なら対話メニューを開く
+    2. 迷路を作る（mazegen.MazeGenerator）
+    3. OUTPUT_FILE に書き出す（amazeing.output）
+    4. 「42」を描けなかった理由と、check() で見つかった問題を表示する。
+       メニューで作り直したときにも使うので、display.session.report_problems
+       に置いている
+    5. 端末に表示する。標準入力と標準出力がどちらも端末ならメニューを開く
        （amazeing.display）
 """
 
@@ -74,7 +74,8 @@ def main(argv: Optional[List[str]] = None) -> int:
 def run_program(config_path: str) -> None:
     """設定を読み、迷路を生成し、書き出して表示する。"""
     config = load_config(config_path)
-    # 迷路として作れない設定（大きさ、入口と出口の位置）なら MazeError。
+    # 迷路として作れない設定（大きさ、入口と出口の位置、2x2 の Pac-Man 盤）
+    # なら MazeError。
     generator = MazeGenerator(
         width=config.width,
         height=config.height,

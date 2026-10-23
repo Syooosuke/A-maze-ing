@@ -64,7 +64,11 @@ def _open_dead_end(
 def add_loops(
     grid: Grid, region: List[Coord], rng: random.Random, target: int
 ) -> None:
-    """ループが target 個になるまで、閉じた壁をランダムに開けていく。"""
+    """ループが target 個未満のときだけ、target 個になるまで閉じた壁を開ける。
+
+    開ける壁はランダムに選ぶ。3x3 の壁のない区画ができる壁は開けないので、
+    target 個に届かずに終わることもある。
+    """
     loops = loop_count(grid, region)
     if loops >= target:
         return

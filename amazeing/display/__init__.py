@@ -5,5 +5,5 @@ themes.py   配色
 render.py   キャンバスを端末の文字列にする
 session.py  表示中の迷路と表示設定
 menu.py     端末の対話メニュー
-terminal.py 端末かどうかの判定、色のリセットなど
+terminal.py 端末かどうかの判定、色のリセット、閉じたパイプへの出力を捨てる処理
 """
