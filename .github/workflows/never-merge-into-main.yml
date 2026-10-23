@@ -1,0 +1,17 @@
+# This workflow exists only on the "test" branch. It makes every pull request
+# from this branch into main fail, because main is the submitted version and
+# must not contain the tests.
+name: never merge the test branch into main
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  refuse:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refuse to merge into main
+        run: |
+          echo "::error::The test branch only shares the tests in the team. Never merge it into main."
+          exit 1
