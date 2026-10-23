@@ -1,15 +1,11 @@
 # License
 
-## Why this license
+## Why MIT
 
-The `mazegen` module of this repository is meant to be picked up and reused
-by later projects (a Pac-Man-like game, among others).  A permissive license
-is therefore the right choice: it lets anyone copy, modify, embed and
-redistribute the generator — including inside a closed-source project — as
-long as the original copyright notice travels with the code.  The MIT
-License is the shortest and best known license offering exactly that, which
-is why it was chosen over the GPL family (too restrictive for a dependency)
-or the public domain (no warranty disclaimer, unclear in some countries).
+We want `mazegen` to be reusable in later projects, like a Pac-Man-like
+game. MIT lets anyone use, change and share the code, even in a
+closed-source project, as long as they keep the copyright notice. It is
+short and well known, so we picked it.
 
 ## MIT License
 
