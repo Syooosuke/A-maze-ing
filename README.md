@@ -16,8 +16,8 @@ The `PERFECT` key chooses between two kinds of maze:
   the exit, and no loops.
 * `PERFECT=False` (what `config.txt` uses): a board for a Pac-Man-like
   game. Every corridor can be reached, the four corners and the centre are
-  corridors, there are at least two loops, and there are usually
-  no dead-ends at all.
+  corridors, there are at least two loops, and walls are opened so
+  that no dead-ends are left.
 
 In both modes a "42" made of fully closed cells is drawn inside the maze,
 and the shortest path from the entry to the exit is written to the output
