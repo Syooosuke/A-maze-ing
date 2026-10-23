@@ -51,7 +51,8 @@ MAX_SIZE: int = 1000
 # Pac-Man 盤（PERFECT=False）に必要な、独立したループの最小数。
 MIN_LOOPS: int = 2
 
-# Pac-Man 盤で許す行き止まりの数（subject は "a couple are tolerated"）。
+# Pac-Man 盤で許す行き止まりの数。subject は "a couple are tolerated" とだけ
+# 書いているので、maze_analyzer.py の既定値（--max-dead-ends 2）に合わせた。
 MAX_DEAD_ENDS: int = 2
 
 # random_seed() が引くシードは 32 ビットに収める。設定ファイルへ書き写して

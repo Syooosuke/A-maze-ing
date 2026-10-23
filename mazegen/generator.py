@@ -13,14 +13,15 @@ from .grid import Grid
 from .generation import braiding
 from .generation.backtracker import carve_backtracker
 from .generation.pattern import landmarks, place_pattern
-from .validation import check_arguments, check_types
+from .validation import check_arguments, check_seed, check_types
 
 
 class MazeGenerator:
     """長方形の迷路を作り、解く。
 
     使い方は MazeGenerator(...) で条件を決めて generate() を呼ぶだけ。
-    結果は grid, solution, directions, pattern_cells などの属性で読める。
+    結果は grid, solution, directions, pattern_cells, pattern_warning,
+    seed_used の属性で読める。
     """
 
     def __init__(
@@ -34,10 +35,11 @@ class MazeGenerator:
     ) -> None:
         """条件を検証して保存する。迷路はまだ作らない。
 
-        perfect の既定値は subject と同じく False（Pac-Man 盤）。
+        perfect を省略すると、subject の PERFECT と同じく False（Pac-Man 盤）。
 
         Raises:
-            MazeError: 条件では迷路を作れない場合。
+            MazeError: 引数の型が違う、大きさが範囲外、入口や出口が迷路の外に
+                ある、入口と出口が同じセル、または 2x2 で perfect=False の場合。
         """
         check_types(width, height, entry, exit, perfect, seed)
         exit = (width - 1, height - 1) if exit is None else exit
@@ -59,7 +61,7 @@ class MazeGenerator:
         self.solution: List[Coord] = []
         self.directions: str = ""
         self.seed_used: int = 0
-        # パターン以外のセル。通路として掘る対象で、左上から行ごとに並ぶ。
+        # 「42」以外のセル。通路として掘る対象で、左上から行ごとに並ぶ。
         self._region: List[Coord] = []
 
     def generate(self, seed: Optional[int] = None) -> MazeGenerator:
@@ -70,15 +72,17 @@ class MazeGenerator:
                 使い、それも None ならランダムに選ぶ（seed_used に残る）。
 
         Raises:
-            MazeError: 入口から出口への経路ができなかった場合（"42" は残りの
-                セルがつながる位置にしか置かないので、構造上は起きない）。
+            MazeError: seed が整数でない場合と、入口から出口への経路が
+                できなかった場合（「42」は残りのセルがつながる位置にしか
+                置かないので、こちらは構造上は起きない）。
         """
+        check_seed(seed)
         if seed is None:
             seed = self.seed if self.seed is not None else random_seed()
         self.seed_used = seed
         rng = random.Random(seed)
 
-        # 1. 壁がすべて閉じた格子を作り直し、「42」の置き場所を決める。
+        # 1. 「42」の配置。壁がすべて閉じた格子を作り直し、「42」を置くセルを決める。
         self._grid = Grid(self.width, self.height)
         self.grid = self._grid.walls
         reserved = {self.entry, self.exit}
@@ -91,17 +95,18 @@ class MazeGenerator:
             if cell not in self.pattern_cells
         ]
 
-        # 2. 残りのセルを、再帰的バックトラッカーで全域木に掘る。
-        #    これで完全迷路（ループのない迷路）になる。
+        # 2. 全域木の生成。「42」以外のセルを、再帰的バックトラッカーで全域木に
+        #    掘る。これで完全迷路（ループのない迷路）になる。
         carve_backtracker(self._grid, self._region, rng)
 
-        # 3. Pac-Man 盤なら、行き止まりをなくし、ループを MIN_LOOPS 個以上にする
-        #    （行き止まりをなくすだけで足りることが多く、add_loops は保険）。
+        # 3. 編み込み（Pac-Man 盤のときだけ）。行き止まりの壁をもう 1 枚開ける
+        #    ことを、開けられなくなるまで繰り返す。それでもループが MIN_LOOPS
+        #    個未満なら、add_loops で MIN_LOOPS 個になるまで壁を開ける。
         if not self.perfect:
             braiding.remove_dead_ends(self._grid, self._region, rng)
             braiding.add_loops(self._grid, self._region, rng, MIN_LOOPS)
 
-        # 4. 入口から出口までの最短経路を求める。
+        # 4. 最短経路の探索。幅優先探索で、入口から出口までの最短経路を求める。
         self.solution = routes.solve(self._grid, self.entry, self.exit)
         if not self.solution:
             raise MazeError("no path between the entry and the exit")
@@ -123,5 +128,5 @@ class MazeGenerator:
         return routes.loop_count(self._grid, self._region)
 
     def to_hex_lines(self) -> List[str]:
-        """迷路を 1 セル 16 進数 1 桁で表した行のリストを返す。"""
+        """1 セルを 16 進数 1 桁（大文字）で表した、迷路の行のリストを返す。"""
         return ["".join(f"{walls:X}" for walls in row) for row in self.grid]

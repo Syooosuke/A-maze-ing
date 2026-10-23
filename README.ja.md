@@ -240,7 +240,9 @@ wheel のビルド設定（[`pyproject.toml`](pyproject.toml)）もリポジト�
 ```bash
 python3 -m venv .venv && . .venv/bin/activate
 pip install mazegen-1.0.0-py3-none-any.whl
-# ソースから作り直す場合（wheel は dist/ にできる）
+
+# 上の行の代わりに、ソースから作り直してインストールする場合
+# （wheel は dist/ にできる）
 pip install build && python -m build --wheel
 pip install dist/mazegen-1.0.0-py3-none-any.whl
 ```

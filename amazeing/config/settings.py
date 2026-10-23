@@ -1,8 +1,8 @@
 """設定ファイルを読み込み、値の形式を確認した MazeConfig を作る。
 
 読み取りは reader.py、値の変換は values.py が受け持つ。ここでは両者を
-組み合わせるだけ。迷路として作れるか（大きさ、入口と出口の位置）は
-MazeGenerator が確かめ、作れなければ MazeError を送出する。
+組み合わせるだけ。迷路として作れるか（大きさ、入口と出口の位置、2x2 の
+Pac-Man 盤）は MazeGenerator が確かめ、作れなければ MazeError を送出する。
 """
 
 from __future__ import annotations

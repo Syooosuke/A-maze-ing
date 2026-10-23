@@ -55,9 +55,9 @@ def place_pattern(
     cells = _find_position(width, height, reserved, rng)
     if cells is None:
         return set(), (
-            f"cannot draw the '{PATTERN_TEXT}' pattern: no place in the "
-            f"{width}x{height} maze leaves the entry, the exit, the corners "
-            f"and the centre free"
+            f"cannot draw the '{PATTERN_TEXT}' pattern: found no place in the "
+            f"{width}x{height} maze that leaves the entry, the exit, the "
+            f"corners and the centre free"
         )
     return cells, None
 
@@ -68,8 +68,8 @@ def _find_position(
     """「42」を置ける位置を探し、置いたときのセルを返す。
 
     reserved のセルは塞がず、置いた後も残りのセルがすべてつながって
-    いる必要がある。まず中央を試し、だめならランダムな位置をいくつか
-    試す。見つからなければ None。
+    いる必要がある。まず中央を試し、だめならランダムな位置を
+    RANDOM_ATTEMPTS（25）か所試す。見つからなければ None。
 
     幅が偶数だと、中央のセル（reserved）が "2" の線に重なるので、
     中央には置けずランダムな位置になる。

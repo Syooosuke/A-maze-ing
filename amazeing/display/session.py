@@ -55,7 +55,10 @@ class Session:
         self.theme_index = (self.theme_index + 1) % len(THEMES)
 
     def status(self) -> str:
-        """いまの迷路の要約を 1 行で返す（大きさ、モード、シードなど）。"""
+        """いまの迷路の要約を 1 行で返す。
+
+        大きさ、モード、配色、シード、経路の長さ、ループと行き止まりの数。
+        """
         maze = self.generator
         mode = "perfect" if maze.perfect else "playable board"
         return (
@@ -85,7 +88,7 @@ def report_problems(generator: MazeGenerator) -> None:
     """
     if generator.pattern_warning is not None:
         # subject が「エラーメッセージを表示する」と書いているので Error とする。
-        # 迷路そのものは作れているので、終了ステータスは 0 のまま。
+        # 迷路は作れているので、終了ステータスは 0 のまま。
         print(
             f"Error: {generator.pattern_warning}; "
             "the maze is generated without it",
